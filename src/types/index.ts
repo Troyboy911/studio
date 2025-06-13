@@ -42,6 +42,7 @@ export interface InvestmentOffer {
   ideaId: string;
   investorId: string; // Mock, replace with actual ID if auth is added
   investorName: string;
+  investorFocus?: string; // Added for investor profile snippet
   type: 'buyout' | 'investment';
   amount: number;
   message?: string;
@@ -61,6 +62,7 @@ export interface DreamIdea {
   researchLinks?: ResearchLink[];
   contacts?: Contact[];
   researchNotes?: string; // Could be Markdown
+  category?: string; // Added for idea categorization
   status: 'private' | 'submitted' | 'funded' | 'acquired' | 'reviewing_offers';
   createdAt: Date;
   updatedAt: Date;

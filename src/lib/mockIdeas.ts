@@ -7,6 +7,7 @@ const mockOffersIdea1: InvestmentOffer[] = [
     ideaId: 'idea-1',
     investorId: 'mock-investor-001', // Consistent Investor ID
     investorName: 'Alpha Ventures',
+    investorFocus: 'Early Stage Tech, SaaS', // Added mock investor focus
     type: 'investment',
     amount: 25000,
     message: 'Impressed with the seaweed concept. We propose an initial seed investment of $25,000 for 15% equity, contingent on prototype validation.',
@@ -66,7 +67,8 @@ export const mockUserIdeas: DreamIdea[] = [
     contacts: [
       { id: 'c1-1', name: 'Dr. Algae Bloom', email: 'dralgae@example.com', notes: 'Expert in marine botanicals.'},
     ],
-    researchNotes: `Key findings on seaweed tensile strength:\n- Varies by species and processing method.\n- Optimal drying temperature seems to be 60°C.\n- Need to investigate UV resistance.\n\nMarket competitors:\n- Company X: Focuses on mushroom-based packaging.\n- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.\n`,
+    researchNotes: "Key findings on seaweed tensile strength:\n- Varies by species and processing method.\n- Optimal drying temperature seems to be 60°C.\n- Need to investigate UV resistance.\n\nMarket competitors:\n- Company X: Focuses on mushroom-based packaging.\n- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.\n",
+    category: 'Sustainability', // Added mock category
     status: 'reviewing_offers', // Changed to show offers
     createdAt: new Date(2024, 4, 10),
     updatedAt: new Date(2024, 6, 5),
@@ -94,6 +96,7 @@ export const mockUserIdeas: DreamIdea[] = [
     researchLinks: [],
     contacts: [],
     researchNotes: '',
+    category: 'Technology', // Added mock category
     status: 'private',
     createdAt: new Date(2024, 5, 1),
     updatedAt: new Date(2024, 5, 15),
@@ -106,6 +109,7 @@ export const mockUserIdeas: DreamIdea[] = [
     title: 'Community Skill-Share Platform',
     originalText: 'A local platform where people can offer and find services or lessons based on skills, like tutoring, gardening help, etc.',
     status: 'submitted',
+    category: 'Social Impact', // Added mock category
     refinedText: 'A hyper-local, community-driven skill-sharing platform designed to connect individuals for peer-to-peer services and learning. Users can offer or find expertise in various domains such as academic tutoring, home repairs, creative arts, and wellness coaching, fostering local economies and social connections.',
     suggestions: [
       'Implement a robust verification system for user safety.',
@@ -134,6 +138,7 @@ export const mockUserIdeas: DreamIdea[] = [
     id: 'idea-4',
     title: 'Urban Vertical Farming Kits',
     originalText: 'Easy-to-use vertical farming kits for city dwellers with limited space.',
+    category: 'Sustainability', // Added mock category
     refinedText: 'Compact, modular vertical farming kits designed for urban environments, enabling individuals to grow fresh produce indoors regardless of space constraints. Kits include automated lighting and watering systems, and are paired with an app for guidance and community support.',
     suggestions: [
         'Source sustainable materials for kit components.',
@@ -157,6 +162,7 @@ export const mockUserIdeas: DreamIdea[] = [
         ideaId: 'idea-4',
         investorId: 'mock-investor-001',
         investorName: 'GreenGrowth Capital',
+        investorFocus: 'Sustainable AgTech',
         type: 'investment',
         amount: 75000,
         message: 'We love the sustainability angle and market potential. Offer: $75,000 for 20% equity.',

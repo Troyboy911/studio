@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Eye, TrendingUp, Award, MessageSquare, Briefcase, ChevronRight, CheckCircle, MailWarning, Hourglass, ListChecks, Bell, Activity } from 'lucide-react';
+import { PlusCircle, Eye, TrendingUp, Award, MessageSquare, Briefcase, ChevronRight, CheckCircle, MailWarning, Hourglass, ListChecks, Bell, Activity, InfoIcon } from 'lucide-react';
 import { mockUserIdeas } from '@/lib/mockIdeas'; 
 import type { DreamIdea, InvestmentOffer, Message } from '@/types';
 import { useEffect, useState } from 'react';
@@ -242,6 +242,12 @@ function DreamerDashboardPage() {
                   <CardDescription>
                     From: {offer.investorName} | Amount: ${offer.amount.toLocaleString()} ({offer.type})
                   </CardDescription>
+                  {offer.investorFocus && (
+                    <div className="flex items-center text-xs text-muted-foreground pt-1">
+                      <InfoIcon className="h-3 w-3 mr-1" />
+                      Investor Focus: {offer.investorFocus}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground line-clamp-2">{offer.message || "No additional message."}</p>
