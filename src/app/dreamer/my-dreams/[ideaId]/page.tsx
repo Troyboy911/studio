@@ -1,4 +1,6 @@
+
 import DreamDetailClient from '@/components/dreamer/DreamDetailClient';
+import type { Metadata } from 'next';
 
 interface DreamDetailPageProps {
   params: {
@@ -17,9 +19,10 @@ export default function DreamDetailPage({ params }: DreamDetailPageProps) {
 //   return []; // For now, let it be server-rendered on demand
 // }
 
-export async function generateMetadata({ params }: DreamDetailPageProps) {
-  // In a real app, fetch idea title based on params.ideaId
+export async function generateMetadata({ params }: DreamDetailPageProps): Promise<Metadata> {
+  const ideaId = params.ideaId;
+  // In a real app, fetch idea title based on ideaId
   return {
-    title: `Dream Details - ${params.ideaId} | IDream`,
+    title: `Dream Details - ${ideaId} | IDream`,
   };
 }
