@@ -12,7 +12,14 @@ export default function HomePage() {
       <section
         className="w-full py-20 md:py-32 relative overflow-hidden rounded-xl shadow-2xl min-h-[60vh] flex flex-col justify-center items-center"
       >
-        {/* Removed specific Image component for hero background to let global stars show */}
+        <Image
+          src="https://images.unsplash.com/photo-1538370965046-79c0d6907d47?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxnYWxheHl8ZW58MHx8fHwxNzQ5NzgzNTg4fDA&ixlib=rb-4.1.0&q=80&w=1080"
+          alt="Galaxy background"
+          fill
+          priority
+          className="absolute inset-0 z-0 object-cover"
+          data-ai-hint="starry sky shooting star"
+        />
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-background bg-foreground/10 backdrop-blur-sm p-8 rounded-lg">
           <h1 className="text-5xl md:text-7xl font-bold text-background mb-6">
             Dream big.
