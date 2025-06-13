@@ -1,11 +1,18 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { TrendingUp, Sparkles, UserCheck, PlayCircle, Star } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { TrendingUp, Sparkles, UserCheck, PlayCircle, Star, Award, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
+import { mockUserIdeas } from '@/lib/mockIdeas';
+import type { DreamIdea } from '@/types';
+import { Badge } from '@/components/ui/badge';
 
 export default function HomePage() {
+  const successStories = mockUserIdeas.filter(
+    idea => idea.status === 'funded' || idea.status === 'acquired'
+  ).slice(0, 3); // Take up to 3 success stories for the homepage
+
   return (
     <div className="flex flex-col items-center text-center space-y-16 md:space-y-24">
       {/* Hero Section */}
@@ -37,17 +44,54 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Placeholder Video Section */}
-      <section className="w-full max-w-4xl mx-auto">
-        <h2 className="text-4xl font-bold mb-8 text-foreground">Discover IDream</h2>
-        <div className="aspect-video bg-muted/20 rounded-lg flex items-center justify-center border border-border shadow-lg">
-          {/* In a real app, you would embed a video player here */}
-          <div className="text-center p-8">
-            <PlayCircle className="w-24 h-24 text-primary mx-auto mb-4" />
-            <p className="text-xl text-muted-foreground">Our explainer video is coming soon!</p>
-            <p className="text-sm text-muted-foreground">(Video Player Placeholder)</p>
-          </div>
+      {/* Success Stories Section */}
+      <section className="py-16 md:py-24 w-full">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl font-bold text-foreground flex items-center justify-center">
+            <Award className="mr-3 h-10 w-10 text-primary" />
+            Success Stories
+          </h2>
+          <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
+            See how IDream has helped turn visionary ideas into tangible realities and thriving ventures.
+          </p>
         </div>
+        {successStories.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {successStories.map(idea => (
+              <Card key={idea.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground flex flex-col">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-primary">{idea.title}</CardTitle>
+                  <Badge variant="default" className="w-fit mt-2 bg-green-600 hover:bg-green-700 text-white">
+                    {idea.status.charAt(0).toUpperCase() + idea.status.slice(1)}
+                  </Badge>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <p className="text-muted-foreground line-clamp-4">
+                    {idea.refinedText || idea.originalText}
+                  </p>
+                </CardContent>
+                <CardFooter>
+                  <Button variant="link" asChild className="text-primary p-0 hover:text-primary/80">
+                    <Link href={`/dreamer/my-dreams/${idea.id}`}>Read Full Story <ArrowRight className="ml-2 h-4 w-4"/></Link>
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center text-muted-foreground py-8">
+            <Award className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+            <p className="text-lg">Inspiring success stories are on their way!</p>
+            <p className="text-sm">Check back soon to see how dreams are taking flight.</p>
+          </div>
+        )}
+        {mockUserIdeas.filter(idea => idea.status === 'funded' || idea.status === 'acquired').length > 3 && (
+          <div className="mt-12 text-center">
+            <Button variant="outline" size="lg" disabled>
+                View All Success Stories (Coming Soon)
+            </Button>
+          </div>
+        )}
       </section>
 
       {/* Placeholder "Save the world" Section */}
