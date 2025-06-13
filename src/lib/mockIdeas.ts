@@ -1,5 +1,42 @@
 
-import type { DreamIdea } from '@/types';
+import type { DreamIdea, InvestmentOffer, Message } from '@/types';
+
+const mockOffersIdea1: InvestmentOffer[] = [
+  { 
+    id: 'offer-1-1', 
+    ideaId: 'idea-1', 
+    investorId: 'investor-alpha', 
+    investorName: 'Alpha Ventures',
+    type: 'investment', 
+    amount: 25000, 
+    message: 'Impressed with the seaweed concept. We propose an initial seed investment of $25,000 for 15% equity, contingent on prototype validation.',
+    status: 'pending', 
+    createdAt: new Date(2024, 6, 1),
+    updatedAt: new Date(2024, 6, 1),
+  },
+];
+
+const mockCommunicationsIdea1: Message[] = [
+  { 
+    id: 'msg-1-1', 
+    ideaId: 'idea-1', 
+    senderId: 'investor-alpha', 
+    senderName: 'Alpha Ventures',
+    content: 'Following up on our offer. Are you available for a call next week to discuss?', 
+    timestamp: new Date(2024, 6, 5, 10, 0),
+    read: false, 
+  },
+  { 
+    id: 'msg-1-2', 
+    ideaId: 'idea-1', 
+    senderId: 'dreamer-mock-id', 
+    senderName: 'You',
+    content: 'Thank you for the offer and message! Yes, I am available. How about Tuesday at 2 PM?', 
+    timestamp: new Date(2024, 6, 5, 14, 0),
+    read: true,
+  },
+];
+
 
 export const mockUserIdeas: DreamIdea[] = [
   {
@@ -29,18 +66,12 @@ export const mockUserIdeas: DreamIdea[] = [
     contacts: [
       { id: 'c1-1', name: 'Dr. Algae Bloom', email: 'dralgae@example.com', notes: 'Expert in marine botanicals.'},
     ],
-    researchNotes: `Key findings on seaweed tensile strength:
-- Varies by species and processing method.
-- Optimal drying temperature seems to be 60°C.
-- Need to investigate UV resistance.
-
-Market competitors:
-- Company X: Focuses on mushroom-based packaging.
-- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.
-`,
-    status: 'private',
+    researchNotes: `Key findings on seaweed tensile strength:\n- Varies by species and processing method.\n- Optimal drying temperature seems to be 60°C.\n- Need to investigate UV resistance.\n\nMarket competitors:\n- Company X: Focuses on mushroom-based packaging.\n- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.\n`,
+    status: 'reviewing_offers', // Changed to show offers
     createdAt: new Date(2024, 4, 10),
-    updatedAt: new Date(2024, 5, 20),
+    updatedAt: new Date(2024, 6, 5),
+    offers: mockOffersIdea1,
+    communications: mockCommunicationsIdea1,
   },
   {
     id: 'idea-2',
@@ -64,12 +95,14 @@ Market competitors:
     status: 'private',
     createdAt: new Date(2024, 5, 1),
     updatedAt: new Date(2024, 5, 15),
+    offers: [],
+    communications: [],
   },
   {
     id: 'idea-3',
     title: 'Community Skill-Share Platform',
     originalText: 'A local platform where people can offer and find services or lessons based on skills, like tutoring, gardening help, etc.',
-    status: 'submitted', // This one is submitted
+    status: 'submitted', 
     refinedText: 'A hyper-local, community-driven skill-sharing platform designed to connect individuals for peer-to-peer services and learning. Users can offer or find expertise in various domains such as academic tutoring, home repairs, creative arts, and wellness coaching, fostering local economies and social connections.',
     suggestions: [
       'Implement a robust verification system for user safety.',
@@ -89,5 +122,54 @@ Market competitors:
     researchNotes: '',
     createdAt: new Date(2024, 3, 20),
     updatedAt: new Date(2024, 6, 1),
+    offers: [],
+    communications: [],
+  },
+  {
+    id: 'idea-4',
+    title: 'Urban Vertical Farming Kits',
+    originalText: 'Easy-to-use vertical farming kits for city dwellers with limited space.',
+    refinedText: 'Compact, modular vertical farming kits designed for urban environments, enabling individuals to grow fresh produce indoors regardless of space constraints. Kits include automated lighting and watering systems, and are paired with an app for guidance and community support.',
+    suggestions: [
+        'Source sustainable materials for kit components.',
+        'Develop a subscription model for seeds and nutrients.',
+        'Create partnerships with local organic stores.'
+    ],
+    goals: [
+        {id: 'g4-1', text: 'Design Phase 1 Kit', completed: true},
+        {id: 'g4-2', text: 'Test with 10 urban users', completed: false}
+    ],
+    meetings: [],
+    researchLinks: [],
+    contacts: [],
+    researchNotes: '',
+    status: 'funded', // This one is funded
+    createdAt: new Date(2024, 2, 1),
+    updatedAt: new Date(2024, 6, 10),
+    offers: [
+      { 
+        id: 'offer-4-1', 
+        ideaId: 'idea-4', 
+        investorId: 'investor-beta', 
+        investorName: 'GreenGrowth Capital',
+        type: 'investment', 
+        amount: 75000, 
+        message: 'We love the sustainability angle and market potential. Offer: $75,000 for 20% equity.',
+        status: 'accepted', 
+        createdAt: new Date(2024, 5, 15),
+        updatedAt: new Date(2024, 6, 10),
+      },
+    ],
+    communications: [
+        { 
+            id: 'msg-4-1', 
+            ideaId: 'idea-4', 
+            senderId: 'investor-beta', 
+            senderName: 'GreenGrowth Capital',
+            content: 'Congratulations on accepting our offer! Let\'s schedule a kick-off meeting.', 
+            timestamp: new Date(2024, 6, 11, 9, 0),
+            read: true, 
+          },
+    ],
   },
 ];

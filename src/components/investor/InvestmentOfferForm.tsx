@@ -1,6 +1,7 @@
+
 "use client";
 
-import type { DreamIdea } from '@/types';
+import type { DreamIdea, InvestmentOffer } from '@/types';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +12,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DollarSign, Send, CheckCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-
-interface InvestmentOfferFormProps {
-  idea: DreamIdea;
-}
+import { mockUserIdeas } from '@/lib/mockIdeas'; // Import mock data
 
 const MIN_INVESTMENT_AMOUNT = 5000;
 
@@ -41,20 +39,32 @@ export default function InvestmentOfferForm({ idea }: InvestmentOfferFormProps) 
       return;
     }
 
-    // Simulate submission
-    console.log({
+    const newOffer: InvestmentOffer = {
+      id: `offer-${idea.id}-${Date.now()}`,
       ideaId: idea.id,
-      offerType,
+      investorId: 'mock-investor-001', // Replace with actual investor ID from auth
+      investorName: 'Mock Investor Capital', // Replace with actual investor name
+      type: offerType,
       amount: numericAmount,
-      message,
-    });
+      message: message.trim() || undefined,
+      status: 'pending',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
     
-    // In a real app, this would be an API call to save the offer
-    // For now, also update the global mock for other parts of the app, e.g. add to idea.offers
+    // In a real app, this would be an API call to save the offer.
+    // For this prototype, we update the mock data directly.
     const ideaIndex = mockUserIdeas.findIndex(i => i.id === idea.id);
     if (ideaIndex !== -1) {
-      // mockUserIdeas[ideaIndex].offers = [...(mockUserIdeas[ideaIndex].offers || []), { /* new offer data */ }];
-      // For simplicity, just log it. A real app would update state and potentially the mock data.
+      if (!mockUserIdeas[ideaIndex].offers) {
+        mockUserIdeas[ideaIndex].offers = [];
+      }
+      mockUserIdeas[ideaIndex].offers!.push(newOffer);
+      // Optionally change idea status
+      if (mockUserIdeas[ideaIndex].status === 'submitted') {
+        mockUserIdeas[ideaIndex].status = 'reviewing_offers'; 
+      }
+      mockUserIdeas[ideaIndex].updatedAt = new Date();
     }
 
 
@@ -156,6 +166,3 @@ export default function InvestmentOfferForm({ idea }: InvestmentOfferFormProps) 
     </Card>
   );
 }
-
-// Need to import mockUserIdeas if modifying it, or use a global state/context for a better scaffold
-import { mockUserIdeas } from '@/lib/mockIdeas';
