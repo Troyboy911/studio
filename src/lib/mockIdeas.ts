@@ -5,9 +5,9 @@ const mockOffersIdea1: InvestmentOffer[] = [
   {
     id: 'offer-1-1',
     ideaId: 'idea-1',
-    investorId: 'mock-investor-001', // Consistent Investor ID
+    investorId: 'mock-investor-001', 
     investorName: 'Alpha Ventures',
-    investorFocus: 'Early Stage Tech, SaaS', // Added mock investor focus
+    investorFocus: 'Early Stage Tech, SaaS', 
     type: 'investment',
     amount: 25000,
     message: 'Impressed with the seaweed concept. We propose an initial seed investment of $25,000 for 15% equity, contingent on prototype validation.',
@@ -15,13 +15,26 @@ const mockOffersIdea1: InvestmentOffer[] = [
     createdAt: new Date(2024, 6, 1),
     updatedAt: new Date(2024, 6, 1),
   },
+  {
+    id: 'offer-1-2',
+    ideaId: 'idea-1',
+    investorId: 'mock-investor-002',
+    investorName: 'EcoFund Partners',
+    investorFocus: 'Sustainability, Circular Economy',
+    type: 'investment',
+    amount: 30000,
+    message: 'We see great potential. Offering $30,000 for 18% equity. Interested in your go-to-market strategy.',
+    status: 'pending',
+    createdAt: new Date(2024, 6, 3),
+    updatedAt: new Date(2024, 6, 3),
+  },
 ];
 
 const mockCommunicationsIdea1: Message[] = [
   {
     id: 'msg-1-1',
     ideaId: 'idea-1',
-    senderId: 'mock-investor-001', // Consistent Investor ID
+    senderId: 'mock-investor-001', 
     senderName: 'Alpha Ventures',
     content: 'Following up on our offer. Are you available for a call next week to discuss?',
     timestamp: new Date(2024, 6, 5, 10, 0),
@@ -30,7 +43,7 @@ const mockCommunicationsIdea1: Message[] = [
   {
     id: 'msg-1-2',
     ideaId: 'idea-1',
-    senderId: 'dreamer-mock-user', // Consistent Dreamer ID
+    senderId: 'dreamer-mock-user', 
     senderName: 'Dreamer (You)',
     content: 'Thank you for the offer and message! Yes, I am available. How about Tuesday at 2 PM?',
     timestamp: new Date(2024, 6, 5, 14, 0),
@@ -68,14 +81,14 @@ export const mockUserIdeas: DreamIdea[] = [
       { id: 'c1-1', name: 'Dr. Algae Bloom', email: 'dralgae@example.com', notes: 'Expert in marine botanicals.'},
     ],
     researchNotes: "Key findings on seaweed tensile strength:\n- Varies by species and processing method.\n- Optimal drying temperature seems to be 60°C.\n- Need to investigate UV resistance.\n\nMarket competitors:\n- Company X: Focuses on mushroom-based packaging.\n- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.\n",
-    category: 'Sustainability', // Added mock category
-    status: 'reviewing_offers', // Changed to show offers
+    category: 'Sustainability', 
+    status: 'reviewing_offers', 
     createdAt: new Date(2024, 4, 10),
     updatedAt: new Date(2024, 6, 5),
     offers: mockOffersIdea1,
     communications: mockCommunicationsIdea1,
     isPremier: true,
-    premierUntil: new Date(Date.now() + 12 * 60 * 60 * 1000), // Premier for the next 12 hours
+    premierUntil: new Date(Date.now() + 12 * 60 * 60 * 1000), 
   },
   {
     id: 'idea-2',
@@ -96,12 +109,12 @@ export const mockUserIdeas: DreamIdea[] = [
     researchLinks: [],
     contacts: [],
     researchNotes: '',
-    category: 'Technology', // Added mock category
+    category: 'Technology', 
     status: 'private',
     createdAt: new Date(2024, 5, 1),
     updatedAt: new Date(2024, 5, 15),
     offers: [],
-    communications: [], // Ensure communications array exists
+    communications: [], 
     isPremier: false,
   },
   {
@@ -109,7 +122,7 @@ export const mockUserIdeas: DreamIdea[] = [
     title: 'Community Skill-Share Platform',
     originalText: 'A local platform where people can offer and find services or lessons based on skills, like tutoring, gardening help, etc.',
     status: 'submitted',
-    category: 'Social Impact', // Added mock category
+    category: 'Social Impact', 
     refinedText: 'A hyper-local, community-driven skill-sharing platform designed to connect individuals for peer-to-peer services and learning. Users can offer or find expertise in various domains such as academic tutoring, home repairs, creative arts, and wellness coaching, fostering local economies and social connections.',
     suggestions: [
       'Implement a robust verification system for user safety.',
@@ -129,16 +142,30 @@ export const mockUserIdeas: DreamIdea[] = [
     researchNotes: '',
     createdAt: new Date(2024, 3, 20),
     updatedAt: new Date(2024, 6, 1),
-    offers: [],
-    communications: [], // Ensure communications array exists
-    isPremier: true, // This one is also premier
-    premierUntil: new Date(Date.now() + 36 * 60 * 60 * 1000), // Premier for the next 36 hours
+    offers: [
+        {
+        id: 'offer-3-1',
+        ideaId: 'idea-3',
+        investorId: 'mock-investor-003',
+        investorName: 'Community First Fund',
+        investorFocus: 'Social Enterprises, Local Impact',
+        type: 'investment',
+        amount: 10000,
+        message: 'We support community initiatives. Offering $10,000 grant-like investment for pilot program.',
+        status: 'pending',
+        createdAt: new Date(2024, 6, 10),
+        updatedAt: new Date(2024, 6, 10),
+      }
+    ],
+    communications: [], 
+    isPremier: true, 
+    premierUntil: new Date(Date.now() + 36 * 60 * 60 * 1000), 
   },
   {
     id: 'idea-4',
     title: 'Urban Vertical Farming Kits',
     originalText: 'Easy-to-use vertical farming kits for city dwellers with limited space.',
-    category: 'Sustainability', // Added mock category
+    category: 'Sustainability', 
     refinedText: 'Compact, modular vertical farming kits designed for urban environments, enabling individuals to grow fresh produce indoors regardless of space constraints. Kits include automated lighting and watering systems, and are paired with an app for guidance and community support.',
     suggestions: [
         'Source sustainable materials for kit components.',
@@ -153,40 +180,71 @@ export const mockUserIdeas: DreamIdea[] = [
     researchLinks: [],
     contacts: [],
     researchNotes: '',
-    status: 'funded', // This one is funded
+    status: 'funded', 
     createdAt: new Date(2024, 2, 1),
     updatedAt: new Date(2024, 6, 10),
     offers: [
       {
         id: 'offer-4-1',
         ideaId: 'idea-4',
-        investorId: 'mock-investor-001',
+        investorId: 'mock-investor-004',
         investorName: 'GreenGrowth Capital',
         investorFocus: 'Sustainable AgTech',
         type: 'investment',
         amount: 75000,
         message: 'We love the sustainability angle and market potential. Offer: $75,000 for 20% equity.',
-        status: 'accepted',
+        status: 'accepted', // This offer is accepted
         createdAt: new Date(2024, 5, 15),
         updatedAt: new Date(2024, 6, 10),
       },
     ],
-    communications: [ // Ensure communications array exists
+    communications: [ 
         {
             id: 'msg-4-1',
             ideaId: 'idea-4',
-            senderId: 'mock-investor-001',
+            senderId: 'mock-investor-004',
             senderName: 'GreenGrowth Capital',
             content: 'Congratulations on accepting our offer! Let\'s schedule a kick-off meeting.',
             timestamp: new Date(2024, 6, 11, 9, 0),
             read: true,
           },
     ],
+     isPremier: false,
+  },
+   {
+    id: 'idea-5',
+    title: 'Personalized Story App for Kids',
+    originalText: 'An app that generates personalized stories for children using their name, interests, and selected characters.',
+    refinedText: 'An interactive mobile application that leverages AI to create unique, personalized stories for children. Parents can input their child\'s name, interests (e.g., dinosaurs, space), and choose from a library of characters and themes. The app then generates an engaging story with illustrations, promoting literacy and creativity.',
+    suggestions: [
+      'Ensure content safety and age-appropriateness with robust filtering.',
+      'Explore options for professional voice narration of stories.',
+      'Consider a feature for children to draw or color illustrations within the app.'
+    ],
+    goals: [
+      { id: 'g5-1', text: 'Develop story generation algorithm V1', completed: false },
+      { id: 'g5-2', text: 'Design 10 character archetypes', completed: true },
+      { id: 'g5-3', text: 'User testing with 20 families', completed: false },
+    ],
+    meetings: [
+      { id: 'm5-1', title: 'Child Psychologist Consultation (Content Appropriateness)', date: new Date(2024, 8, 5, 11, 0) },
+    ],
+    researchLinks: [
+       { id: 'rl5-1', title: 'Benefits of Personalized Learning', url: 'https://example.com/personalized-learning', description: 'Studies on how personalization impacts child development.'},
+    ],
+    contacts: [],
+    researchNotes: "Potential illustration styles to explore: whimsical, cartoonish, storybook classic.\nMonetization: subscription for unlimited stories, or packs of new characters/themes.",
+    category: 'Education',
+    status: 'private',
+    createdAt: new Date(2024, 6, 15),
+    updatedAt: new Date(2024, 6, 20),
+    offers: [],
+    communications: [],
+    isPremier: false,
   },
 ];
 
-export const INVESTOR_MOCK_ID = 'mock-investor-001';
-export const INVESTOR_MOCK_NAME = 'Alpha Ventures'; // Or a generic name like "Investor"
+export const INVESTOR_MOCK_ID = 'mock-investor-001'; // Used as a generic ID for any investor action for now
+export const INVESTOR_MOCK_NAME = 'Alpha Ventures'; // Used as a generic name
 export const DREAMER_MOCK_ID = 'dreamer-mock-user';
 export const DREAMER_MOCK_NAME = 'Dreamer (You)';
-
