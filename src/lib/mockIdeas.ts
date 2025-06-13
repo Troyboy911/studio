@@ -1,3 +1,4 @@
+
 import type { DreamIdea } from '@/types';
 
 export const mockUserIdeas: DreamIdea[] = [
@@ -21,6 +22,22 @@ export const mockUserIdeas: DreamIdea[] = [
       { id: 'm1-1', title: 'Material Scientist Consultation', date: new Date(2024, 6, 15, 10, 0) },
       { id: 'm1-2', title: 'Investor Pitch Practice', date: new Date(2024, 7, 1, 14, 0) },
     ],
+    researchLinks: [
+      { id: 'rl1-1', title: 'Seaweed Packaging Innovations 2024', url: 'https://example.com/seaweed-innovations', description: 'Recent breakthroughs in seaweed-based materials.'},
+      { id: 'rl1-2', title: 'Biodegradable Material Standards EU', url: 'https://example.com/eu-biodegradable-standards', description: 'EU regulations for biodegradable products.'},
+    ],
+    contacts: [
+      { id: 'c1-1', name: 'Dr. Algae Bloom', email: 'dralgae@example.com', notes: 'Expert in marine botanicals.'},
+    ],
+    researchNotes: `Key findings on seaweed tensile strength:
+- Varies by species and processing method.
+- Optimal drying temperature seems to be 60°C.
+- Need to investigate UV resistance.
+
+Market competitors:
+- Company X: Focuses on mushroom-based packaging.
+- Company Y: Uses cornstarch PLA. Our seaweed solution offers better water solubility.
+`,
     status: 'private',
     createdAt: new Date(2024, 4, 10),
     updatedAt: new Date(2024, 5, 20),
@@ -41,6 +58,9 @@ export const mockUserIdeas: DreamIdea[] = [
       { id: 'g2-3', text: 'Develop beta version', completed: false },
     ],
     meetings: [],
+    researchLinks: [],
+    contacts: [],
+    researchNotes: '',
     status: 'private',
     createdAt: new Date(2024, 5, 1),
     updatedAt: new Date(2024, 5, 15),
@@ -64,6 +84,9 @@ export const mockUserIdeas: DreamIdea[] = [
     meetings: [
        { id: 'm3-1', title: 'Focus group with local residents', date: new Date(2024, 7, 10, 18, 0) }
     ],
+    researchLinks: [],
+    contacts: [],
+    researchNotes: '',
     createdAt: new Date(2024, 3, 20),
     updatedAt: new Date(2024, 6, 1),
   },

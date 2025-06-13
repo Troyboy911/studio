@@ -1,3 +1,4 @@
+
 export interface Goal {
   id: string;
   text: string;
@@ -11,6 +12,21 @@ export interface Meeting {
   notes?: string;
 }
 
+export interface ResearchLink {
+  id: string;
+  title: string;
+  url: string;
+  description?: string;
+}
+
+export interface Contact {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+}
+
 export interface DreamIdea {
   id: string;
   title: string;
@@ -19,6 +35,9 @@ export interface DreamIdea {
   suggestions?: string[];
   goals: Goal[];
   meetings: Meeting[];
+  researchLinks?: ResearchLink[];
+  contacts?: Contact[];
+  researchNotes?: string; // Could be Markdown
   status: 'private' | 'submitted' | 'funded' | 'acquired';
   createdAt: Date;
   updatedAt: Date;

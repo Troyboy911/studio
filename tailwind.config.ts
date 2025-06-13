@@ -1,3 +1,4 @@
+
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -10,9 +11,12 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['Alegreya', 'serif'],
-        headline: ['Belleza', 'sans-serif'],
+        body: ['Inter', 'sans-serif'],
+        headline: ['Inter', 'sans-serif'], // Changed from Belleza to Inter
         code: ['monospace'],
+      },
+      fontSize: { // Example: If you want to make text-base slightly larger overall
+        // 'base': '1.05rem', // Default is 1rem (16px). This would be ~16.8px
       },
       colors: {
         background: 'hsl(var(--background))',

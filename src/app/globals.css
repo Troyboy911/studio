@@ -1,9 +1,10 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  font-family: 'Alegreya', serif; /* Default body font */
+  font-family: 'Inter', sans-serif; /* Default body font */
 }
 
 @layer base {
@@ -83,9 +84,9 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground text-base; /* Ensure text-base for body */
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-headline;
+    @apply font-headline font-semibold; /* Headlines use Inter with a bolder weight */
   }
 }
