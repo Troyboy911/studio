@@ -3,10 +3,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: 'Inter', sans-serif; /* Default body font */
-}
-
 @layer base {
   :root {
     --background: 208 100% 97%; /* #F0F8FF - Alice Blue */
@@ -84,7 +80,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground text-base; /* Ensure text-base for body */
+    @apply bg-background text-foreground text-base font-medium; /* Changed to font-medium */
   }
   h1, h2, h3, h4, h5, h6 {
     @apply font-headline font-semibold; /* Headlines use Inter with a bolder weight */
