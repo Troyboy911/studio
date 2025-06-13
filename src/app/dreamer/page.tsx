@@ -1,15 +1,17 @@
 
-"use client"; // This will be a client component to fetch and display dynamic data
+"use client"; 
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Eye, TrendingUp, Award, MessageSquare, Briefcase, ChevronRight, CheckCircle, MailWarning, Hourglass, ListChecks, Bell, Activity, InfoIcon } from 'lucide-react';
-import { mockUserIdeas } from '@/lib/mockIdeas'; 
+import { PlusCircle, Eye, ListChecks, Bell, Activity, InfoIcon, MailWarning, CheckCircle, Hourglass, Award, Briefcase, MessageSquare, ChevronRight, Loader2 } from 'lucide-react';
 import type { DreamIdea, InvestmentOffer, Message } from '@/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { db } from '@/lib/firebase'; // Import Firestore instance
+import { collection, getDocs, Timestamp, query, orderBy } from 'firebase/firestore';
+import { useToast } from "@/hooks/use-toast";
 
 interface IdeaStatusCounts {
   private: number;
@@ -22,8 +24,8 @@ interface IdeaStatusCounts {
 function DreamerDashboardPage() {
   const [userIdeas, setUserIdeas] = useState<DreamIdea[]>([]);
   const [fundedIdeas, setFundedIdeas] = useState<DreamIdea[]>([]);
-  const [offers, setOffers] = useState<InvestmentOffer[]>([]);
-  const [communications, setCommunications] = useState<Message[]>([]);
+  const [offers, setOffers] = useState<(InvestmentOffer & {ideaTitle?: string})[]>([]);
+  const [communications, setCommunications] = useState<(Message & {ideaTitle?: string})[]>([]);
   const [ideaCounts, setIdeaCounts] = useState<IdeaStatusCounts>({
     private: 0,
     submitted: 0,
@@ -31,36 +33,99 @@ function DreamerDashboardPage() {
     funded: 0,
     acquired: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // In a real app, you'd fetch this data for the logged-in user
-    setUserIdeas(mockUserIdeas); 
-    setFundedIdeas(mockUserIdeas.filter(idea => idea.status === 'funded' || idea.status === 'acquired'));
+    const fetchIdeas = async () => {
+      setIsLoading(true);
+      try {
+        const ideasCollectionRef = collection(db, 'ideas');
+        // Assuming you might want to order by creation date or last update
+        const q = query(ideasCollectionRef, orderBy('createdAt', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const fetchedIdeas: DreamIdea[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          // Convert Firestore Timestamps to JS Dates
+          const idea: DreamIdea = {
+            id: doc.id,
+            ...data,
+            createdAt: (data.createdAt as Timestamp)?.toDate ? (data.createdAt as Timestamp).toDate() : new Date(data.createdAt),
+            updatedAt: (data.updatedAt as Timestamp)?.toDate ? (data.updatedAt as Timestamp).toDate() : new Date(data.updatedAt),
+            goals: data.goals?.map((g: any) => ({ ...g })) || [],
+            meetings: data.meetings?.map((m: any) => ({ ...m, date: (m.date as Timestamp)?.toDate ? (m.date as Timestamp).toDate() : new Date(m.date) })) || [],
+            researchLinks: data.researchLinks?.map((rl: any) => ({ ...rl })) || [],
+            contacts: data.contacts?.map((c: any) => ({ ...c })) || [],
+            offers: data.offers?.map((o: any) => ({
+              ...o,
+              createdAt: (o.createdAt as Timestamp)?.toDate ? (o.createdAt as Timestamp).toDate() : new Date(o.createdAt),
+              updatedAt: (o.updatedAt as Timestamp)?.toDate ? (o.updatedAt as Timestamp).toDate() : new Date(o.updatedAt),
+            })) || [],
+            communications: data.communications?.map((comm: any) => ({
+              ...comm,
+              timestamp: (comm.timestamp as Timestamp)?.toDate ? (comm.timestamp as Timestamp).toDate() : new Date(comm.timestamp),
+            })) || [],
+            premierUntil: data.premierUntil ? ((data.premierUntil as Timestamp)?.toDate ? (data.premierUntil as Timestamp).toDate() : new Date(data.premierUntil)) : undefined,
+          } as DreamIdea;
+          fetchedIdeas.push(idea);
+        });
+
+        setUserIdeas(fetchedIdeas);
+        
+        setFundedIdeas(fetchedIdeas.filter(idea => idea.status === 'funded' || idea.status === 'acquired'));
     
-    const allOffers: InvestmentOffer[] = mockUserIdeas.reduce((acc, idea) => {
-      if (idea.offers) {
-        return acc.concat(idea.offers.map(offer => ({...offer, ideaTitle: idea.title})));
+        const allOffers: (InvestmentOffer & {ideaTitle?: string})[] = fetchedIdeas.reduce((acc, idea) => {
+          if (idea.offers) {
+            return acc.concat(idea.offers.map(offer => ({...offer, ideaTitle: idea.title, ideaId: idea.id })));
+          }
+          return acc;
+        }, [] as (InvestmentOffer & {ideaTitle?: string})[]);
+        setOffers(allOffers.filter(offer => offer.status === 'pending'));
+
+        const allMessages: (Message & {ideaTitle?: string})[] = fetchedIdeas.reduce((acc, idea) => {
+            if (idea.communications) {
+                return acc.concat(idea.communications.map(msg => ({...msg, ideaTitle: idea.title, ideaId: idea.id})));
+            }
+            return acc;
+        }, [] as (Message & {ideaTitle?: string})[]);
+        setCommunications(allMessages.sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 3));
+
+        const counts = fetchedIdeas.reduce((acc, idea) => {
+          acc[idea.status] = (acc[idea.status] || 0) + 1;
+          return acc;
+        }, { private: 0, submitted: 0, reviewing_offers: 0, funded: 0, acquired: 0 } as IdeaStatusCounts);
+        setIdeaCounts(counts);
+
+      } catch (error) {
+        console.error("Error fetching ideas from Firestore:", error);
+        toast({
+          title: "Error Loading Data",
+          description: "Could not fetch your ideas from the database. Please try again later.",
+          variant: "destructive",
+        });
+        // Keep showing empty/mock state or specific error UI
+        setUserIdeas([]); // Clear ideas on error
+        setFundedIdeas([]);
+        setOffers([]);
+        setCommunications([]);
+        setIdeaCounts({ private: 0, submitted: 0, reviewing_offers: 0, funded: 0, acquired: 0 });
+      } finally {
+        setIsLoading(false);
       }
-      return acc;
-    }, [] as (InvestmentOffer & {ideaTitle?: string})[]);
-    setOffers(allOffers.filter(offer => offer.status === 'pending'));
+    };
 
-    const allMessages: Message[] = mockUserIdeas.reduce((acc, idea) => {
-        if (idea.communications) {
-            return acc.concat(idea.communications.map(msg => ({...msg, ideaTitle: idea.title})));
-        }
-        return acc;
-    }, [] as (Message & {ideaTitle?: string})[]);
-    setCommunications(allMessages.sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 3)); // Show latest 3
+    fetchIdeas();
+  }, [toast]);
 
-    // Calculate idea counts
-    const counts = mockUserIdeas.reduce((acc, idea) => {
-      acc[idea.status] = (acc[idea.status] || 0) + 1;
-      return acc;
-    }, { private: 0, submitted: 0, reviewing_offers: 0, funded: 0, acquired: 0 } as IdeaStatusCounts);
-    setIdeaCounts(counts);
-
-  }, []);
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-lg text-muted-foreground">Loading your dashboard...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
@@ -162,29 +227,34 @@ function DreamerDashboardPage() {
         </h2>
         <Card className="bg-muted/20">
             <CardContent className="pt-6">
-                <div className="space-y-4">
-                    <div className="flex items-start p-3 border-b border-border/50">
-                        <Activity className="h-5 w-5 text-primary mr-3 mt-1 shrink-0" />
-                        <div>
-                            <p className="font-medium">Investor Alpha Ventures <span className="text-muted-foreground">viewed your idea:</span> "Eco-Friendly Packaging Solution"</p>
-                            <p className="text-xs text-muted-foreground">2 hours ago (Mock)</p>
+                 {userIdeas.length > 0 ? (
+                    <div className="space-y-4">
+                        {/* Placeholder activity items - replace with real data if available */}
+                        <div className="flex items-start p-3 border-b border-border/50">
+                            <Activity className="h-5 w-5 text-primary mr-3 mt-1 shrink-0" />
+                            <div>
+                                <p className="font-medium">Investor Alpha Ventures <span className="text-muted-foreground">viewed your idea:</span> "{userIdeas[0]?.title || 'Your Latest Idea'}"</p>
+                                <p className="text-xs text-muted-foreground">2 hours ago (Mock)</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start p-3 border-b border-border/50">
+                            <MailWarning className="h-5 w-5 text-accent mr-3 mt-1 shrink-0" />
+                            <div>
+                                <p className="font-medium">New Message <span className="text-muted-foreground">from Investor Beta Corp regarding:</span> "{userIdeas[1]?.title || 'Another Idea'}"</p>
+                                <p className="text-xs text-muted-foreground">1 day ago (Mock)</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start p-3">
+                            <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 shrink-0" />
+                            <div>
+                                <p className="font-medium">Your idea "{userIdeas[2]?.title || 'A Great Idea'}" <span className="text-muted-foreground">was successfully submitted to investors.</span></p>
+                                <p className="text-xs text-muted-foreground">3 days ago (Mock)</p>
+                            </div>
                         </div>
                     </div>
-                    <div className="flex items-start p-3 border-b border-border/50">
-                        <MailWarning className="h-5 w-5 text-accent mr-3 mt-1 shrink-0" />
-                        <div>
-                            <p className="font-medium">New Message <span className="text-muted-foreground">from Investor Beta Corp regarding:</span> "AI Language Companion"</p>
-                            <p className="text-xs text-muted-foreground">1 day ago (Mock)</p>
-                        </div>
-                    </div>
-                     <div className="flex items-start p-3">
-                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 shrink-0" />
-                        <div>
-                            <p className="font-medium">Your idea "Community Skill-Share Platform" <span className="text-muted-foreground">was successfully submitted to investors.</span></p>
-                            <p className="text-xs text-muted-foreground">3 days ago (Mock)</p>
-                        </div>
-                    </div>
-                </div>
+                 ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">No recent activity to display.</p>
+                 )}
                 <div className="mt-6 text-center">
                     <Button variant="outline" disabled>View All Notifications (Coming Soon)</Button>
                 </div>
@@ -237,7 +307,7 @@ function DreamerDashboardPage() {
               <Card key={offer.id} className="shadow-md hover:shadow-lg transition-shadow">
                 <CardHeader>
                    <CardTitle className="text-lg">
-                    Offer for: <span className="text-primary">{(offer as any).ideaTitle || 'Your Idea'}</span>
+                    Offer for: <span className="text-primary">{offer.ideaTitle || 'Your Idea'}</span>
                     </CardTitle>
                   <CardDescription>
                     From: {offer.investorName} | Amount: ${offer.amount.toLocaleString()} ({offer.type})
@@ -257,7 +327,7 @@ function DreamerDashboardPage() {
                     {offer.status.charAt(0).toUpperCase() + offer.status.slice(1)}
                    </Badge>
                    <Button variant="outline" size="sm" asChild>
-                     <Link href={`/dreamer/my-dreams/${offer.ideaId}?tab=offers`}> {/* Conceptual: link to offers tab */}
+                     <Link href={`/dreamer/my-dreams/${offer.ideaId}?tab=offers`}>
                        View Offer <ChevronRight className="h-4 w-4 ml-1"/>
                      </Link>
                    </Button>
@@ -280,7 +350,7 @@ function DreamerDashboardPage() {
 
       <Separator />
 
-      {/* Investor Communications (Placeholder) */}
+      {/* Investor Communications */}
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-foreground flex items-center">
           <MessageSquare className="mr-3 h-7 w-7 text-blue-500" /> Investor Communications
@@ -292,7 +362,7 @@ function DreamerDashboardPage() {
                     <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
                             <CardTitle className="text-md">
-                                {msg.senderName} <span className="text-sm text-muted-foreground">re: {(msg as any).ideaTitle || 'Your Idea'}</span>
+                                {msg.senderName} <span className="text-sm text-muted-foreground">re: {msg.ideaTitle || 'Your Idea'}</span>
                             </CardTitle>
                             {!msg.read && msg.senderId !== 'dreamer-mock-id' && <MailWarning className="h-5 w-5 text-blue-600" />}
                         </div>
@@ -305,7 +375,7 @@ function DreamerDashboardPage() {
                     </CardContent>
                     <CardFooter>
                         <Button variant="link" size="sm" asChild className="p-0 text-blue-600">
-                             <Link href={`/dreamer/my-dreams/${msg.ideaId}?tab=messages`}> {/* Conceptual: link to messages tab */}
+                             <Link href={`/dreamer/my-dreams/${msg.ideaId}?tab=messages`}>
                                 Read Full Message <ChevronRight className="h-4 w-4 ml-1"/>
                              </Link>
                         </Button>
@@ -335,3 +405,5 @@ function DreamerDashboardPage() {
 }
 
 export default DreamerDashboardPage;
+
+    
