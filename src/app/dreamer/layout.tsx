@@ -5,24 +5,16 @@ import type { ReactNode } from 'react';
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Loader2, AlertCircle, Lock, Star } from 'lucide-react';
+import { Loader2, AlertCircle, Lock, Star, CreditCard } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { useToast } from "@/hooks/use-toast";
 
 // Metadata should be handled by individual page.tsx files if layout is client component
-// export const metadata: Metadata = {
-//   title: 'Dreamer Portal - IDream',
-//   description: 'Manage your ideas, refine them, and prepare for investment.',
-// };
 
-function SubscribePrompt() {
-  const handleMockSubscribe = () => {
-    localStorage.setItem('dreamerSubscribed', 'true');
-    // Force a reload or navigate to trigger layout re-check
-    window.location.reload(); 
-  };
-
+function SubscribePrompt({ onSubscribeClick }: { onSubscribeClick: () => void }) {
   return (
     <Card className="max-w-lg mx-auto mt-10 shadow-lg">
       <CardHeader>
@@ -35,12 +27,50 @@ function SubscribePrompt() {
           <p>This feature requires an active IDream subscription.</p>
           <p>Subscribe now to unlock the Dream Planner, submit your ideas to investors, and access exclusive tools to bring your dreams to life!</p>
         </AlertDescription>
-        <Button onClick={handleMockSubscribe} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+        <Button onClick={onSubscribeClick} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
           <Star className="mr-2 h-5 w-5" /> Mock Subscribe Now
         </Button>
-        <p className="text-xs text-center text-muted-foreground">(In a real app, this would lead to a payment page)</p>
+        <p className="text-xs text-center text-muted-foreground">(This will open a mock payment dialog)</p>
       </CardContent>
     </Card>
+  );
+}
+
+function MockPaymentDialog({ isOpen, onClose, onConfirm }: { isOpen: boolean, onClose: () => void, onConfirm: () => void }) {
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(openState) => !openState && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center text-xl">
+            <CreditCard className="mr-3 h-6 w-6 text-primary" /> Confirm Your Subscription
+          </DialogTitle>
+          <DialogDescription className="pt-2">
+            You're about to subscribe to IDream Premium. This is a mock payment step.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6">
+              <p className="text-center font-semibold text-lg">IDream Premium Plan</p>
+              <p className="text-center text-3xl font-bold text-primary mt-2">$9.99<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+              <p className="text-center text-xs text-muted-foreground mt-1">(Mock Price - No Real Charge)</p>
+            </CardContent>
+          </Card>
+        </div>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <DialogClose asChild>
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="button" onClick={onConfirm} className="bg-primary hover:bg-primary/90">
+            Confirm & Pay (Mock)
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -51,6 +81,8 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     const authStatus = localStorage.getItem('dreamerAuthenticated') === 'true';
@@ -70,6 +102,18 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
     setIsAuthenticated(false);
     setIsSubscribed(false);
     router.replace('/dreamer/auth');
+  };
+
+  const handleConfirmMockPayment = () => {
+    localStorage.setItem('dreamerSubscribed', 'true');
+    setIsSubscribed(true);
+    setShowPaymentDialog(false);
+    toast({
+      title: "Subscription Activated!",
+      description: "Welcome to IDream Premium! All features are now unlocked.",
+    });
+    // Reload or navigate to ensure subscription state is reflected everywhere
+    window.location.reload(); 
   };
 
   if (isLoading) {
@@ -97,7 +141,7 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
   }
 
   // Gated sections for authenticated but non-subscribed users
-  const isGatedSection = pathname.startsWith('/dreamer/my-dreams');
+  const isGatedSection = pathname.startsWith('/dreamer/my-dreams') || pathname.startsWith('/dreamer/new-idea'); // Added new-idea to gated
   
   if (isAuthenticated && !isSubscribed && isGatedSection) {
     return (
@@ -111,7 +155,12 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
              <Button variant="outline" onClick={handleLogout}>Logout</Button>
           </div>
         </header>
-        <SubscribePrompt />
+        <SubscribePrompt onSubscribeClick={() => setShowPaymentDialog(true)} />
+        <MockPaymentDialog 
+          isOpen={showPaymentDialog} 
+          onClose={() => setShowPaymentDialog(false)} 
+          onConfirm={handleConfirmMockPayment} 
+        />
       </div>
     );
   }
@@ -127,13 +176,10 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
         </div>
         <div className="flex items-center gap-2">
           {!isSubscribed && (
-            <Button onClick={() => {
-              localStorage.setItem('dreamerSubscribed', 'true');
-              setIsSubscribed(true);
-              window.location.reload(); // Reload to reflect subscription
-            }} 
-            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-            size="sm"
+            <Button 
+              onClick={() => setShowPaymentDialog(true)}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              size="sm"
             >
               <Star className="mr-2 h-4 w-4" /> Mock Subscribe
             </Button>
@@ -142,6 +188,11 @@ export default function DreamerLayout({ children }: { children: ReactNode }) {
         </div>
       </header>
       {children}
+      <MockPaymentDialog 
+        isOpen={showPaymentDialog} 
+        onClose={() => setShowPaymentDialog(false)} 
+        onConfirm={handleConfirmMockPayment} 
+      />
     </div>
   );
 }
