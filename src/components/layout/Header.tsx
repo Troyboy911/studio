@@ -1,7 +1,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { UserCircle, LayoutDashboard, LogIn } from 'lucide-react';
+import { UserCircle, LayoutDashboard, LogIn, Settings } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -20,6 +20,11 @@ export default function Header() {
           <Button variant="ghost" asChild size="sm">
             <Link href="/dreamer/profile" className="text-sm sm:text-base text-foreground hover:text-primary">
               <UserCircle className="mr-1 sm:mr-2 h-4 w-4" /> Profile
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild size="sm">
+            <Link href="/settings" className="text-sm sm:text-base text-foreground hover:text-primary">
+              <Settings className="mr-1 sm:mr-2 h-4 w-4" /> Settings
             </Link>
           </Button>
         </nav>
