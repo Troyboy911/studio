@@ -2,7 +2,7 @@
 "use client";
 
 import type { DreamIdea, Goal, Meeting, ResearchLink, Contact } from '@/types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { mockUserIdeas } from '@/lib/mockIdeas'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,57 +11,38 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import GoalChecklist from './GoalChecklist';
 import MeetingScheduler from './MeetingScheduler';
-import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2 } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2, Save } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 
 interface DreamDetailClientProps {
   ideaId: string;
 }
-
-// TODO: These would be interactive components in a real app
-const ResearchLinksDisplay = ({ links }: { links?: ResearchLink[] }) => {
-  if (!links || links.length === 0) return <p className="text-sm text-muted-foreground">No research links added yet.</p>;
-  return (
-    <ul className="space-y-2">
-      {links.map(link => (
-        <li key={link.id} className="p-3 border rounded-md hover:bg-muted/30">
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{link.title}</a>
-          {link.description && <p className="text-xs text-muted-foreground mt-1">{link.description}</p>}
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const ContactsDisplay = ({ contacts }: { contacts?: Contact[] }) => {
-  if (!contacts || contacts.length === 0) return <p className="text-sm text-muted-foreground">No contacts added yet.</p>;
-  return (
-    <ul className="space-y-2">
-      {contacts.map(contact => (
-        <li key={contact.id} className="p-3 border rounded-md hover:bg-muted/30">
-          <p className="font-semibold">{contact.name}</p>
-          {contact.email && <p className="text-xs text-muted-foreground">Email: {contact.email}</p>}
-          {contact.phone && <p className="text-xs text-muted-foreground">Phone: {contact.phone}</p>}
-          {contact.notes && <p className="text-xs text-muted-foreground mt-1">Notes: {contact.notes}</p>}
-        </li>
-      ))}
-    </ul>
-  );
-};
-
-const ResearchNotesDisplay = ({ notes }: { notes?: string }) => {
-  if (!notes) return <p className="text-sm text-muted-foreground">No research notes added yet.</p>;
-  return <div className="p-3 border rounded-md bg-background/50 whitespace-pre-wrap text-sm">{notes}</div>;
-};
-
 
 export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const [idea, setIdea] = useState<DreamIdea | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
+
+  // State for adding new research link
+  const [showAddLinkForm, setShowAddLinkForm] = useState(false);
+  const [newLinkTitle, setNewLinkTitle] = useState('');
+  const [newLinkUrl, setNewLinkUrl] = useState('');
+  const [newLinkDescription, setNewLinkDescription] = useState('');
+
+  // State for adding new contact
+  const [showAddContactForm, setShowAddContactForm] = useState(false);
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactEmail, setNewContactEmail] = useState('');
+  const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactNotes, setNewContactNotes] = useState('');
+  
+  // State for editing research notes
+  const [editableResearchNotes, setEditableResearchNotes] = useState('');
+
 
   useEffect(() => {
     const subStatus = localStorage.getItem('dreamerSubscribed') === 'true';
@@ -70,12 +51,12 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     const foundIdea = mockUserIdeas.find(i => i.id === ideaId);
     if (foundIdea) {
       setIdea(foundIdea);
+      setEditableResearchNotes(foundIdea.researchNotes || '');
     }
     setLoading(false);
   }, [ideaId]);
   
-  // Mock handlers for new detailed plan sections - in a real app, these would save data
-  const handleDataChange = (section: keyof DreamIdea, data: any) => {
+  const handleDataChange = (section: keyof DreamIdea, data: any, friendlySectionName?: string) => {
     if (idea) {
       const newIdeaState = { ...idea, [section]: data, updatedAt: new Date() };
       setIdea(newIdeaState);
@@ -83,17 +64,53 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
       if (ideaIndex !== -1) {
         mockUserIdeas[ideaIndex] = newIdeaState;
       }
-      toast({ title: `${section.charAt(0).toUpperCase() + section.slice(1)} Updated`, description: `Your project ${section.replace(/([A-Z])/g, ' $1').toLowerCase()} have been saved.` });
+      toast({ title: `${friendlySectionName || section.toString().charAt(0).toUpperCase() + section.slice(1)} Updated`, description: `Your project ${friendlySectionName?.toLowerCase() || section.toString().replace(/([A-Z])/g, ' $1').toLowerCase()} have been saved.` });
     }
   };
 
+  const handleGoalsChange = (updatedGoals: Goal[]) => handleDataChange('goals', updatedGoals, "Goals");
+  const handleMeetingsChange = (updatedMeetings: Meeting[]) => handleDataChange('meetings', updatedMeetings, "Meetings");
 
-  const handleGoalsChange = (updatedGoals: Goal[]) => handleDataChange('goals', updatedGoals);
-  const handleMeetingsChange = (updatedMeetings: Meeting[]) => handleDataChange('meetings', updatedMeetings);
-  // Add handlers for new sections if they become editable
-  // const handleResearchLinksChange = (updatedLinks: ResearchLink[]) => handleDataChange('researchLinks', updatedLinks);
-  // const handleContactsChange = (updatedContacts: Contact[]) => handleDataChange('contacts', updatedContacts);
-  // const handleResearchNotesChange = (updatedNotes: string) => handleDataChange('researchNotes', updatedNotes);
+  const handleAddResearchLink = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newLinkTitle.trim() || !newLinkUrl.trim() || !idea) return;
+    const newLink: ResearchLink = {
+      id: `link-${Date.now()}`,
+      title: newLinkTitle,
+      url: newLinkUrl,
+      description: newLinkDescription || undefined,
+    };
+    const updatedLinks = [...(idea.researchLinks || []), newLink];
+    handleDataChange('researchLinks', updatedLinks, "Research Links");
+    setNewLinkTitle('');
+    setNewLinkUrl('');
+    setNewLinkDescription('');
+    setShowAddLinkForm(false);
+  };
+
+  const handleAddContact = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newContactName.trim() || !idea) return;
+    const newContact: Contact = {
+      id: `contact-${Date.now()}`,
+      name: newContactName,
+      email: newContactEmail || undefined,
+      phone: newContactPhone || undefined,
+      notes: newContactNotes || undefined,
+    };
+    const updatedContacts = [...(idea.contacts || []), newContact];
+    handleDataChange('contacts', updatedContacts, "Contacts");
+    setNewContactName('');
+    setNewContactEmail('');
+    setNewContactPhone('');
+    setNewContactNotes('');
+    setShowAddContactForm(false);
+  };
+
+  const handleSaveResearchNotes = () => {
+    if (!idea) return;
+    handleDataChange('researchNotes', editableResearchNotes, "Research Notes");
+  };
 
 
   const handleSubmitToInvestors = () => {
@@ -235,32 +252,114 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
 
           <div className="space-y-8 mt-8">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle className="text-xl flex items-center"><LinkIcon className="mr-2 h-5 w-5 text-primary" /> Research &amp; Useful Links</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setShowAddLinkForm(!showAddLinkForm)}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Link
+                </Button>
               </CardHeader>
               <CardContent>
-                <ResearchLinksDisplay links={idea.researchLinks} />
-                {/* Add UI to add/edit links here */}
+                {showAddLinkForm && (
+                  <form onSubmit={handleAddResearchLink} className="mb-4 p-4 border rounded-md space-y-3 bg-muted/20">
+                    <div>
+                      <Label htmlFor="linkTitle">Link Title</Label>
+                      <Input id="linkTitle" value={newLinkTitle} onChange={(e) => setNewLinkTitle(e.target.value)} placeholder="E.g., Market Analysis Report" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="linkUrl">URL</Label>
+                      <Input id="linkUrl" type="url" value={newLinkUrl} onChange={(e) => setNewLinkUrl(e.target.value)} placeholder="https://example.com" required />
+                    </div>
+                    <div>
+                      <Label htmlFor="linkDesc">Description (Optional)</Label>
+                      <Textarea id="linkDesc" value={newLinkDescription} onChange={(e) => setNewLinkDescription(e.target.value)} placeholder="Brief note about the link" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button type="submit" size="sm">Save Link</Button>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddLinkForm(false)}>Cancel</Button>
+                    </div>
+                  </form>
+                )}
+                {!idea.researchLinks || idea.researchLinks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No research links added yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {idea.researchLinks.map(link => (
+                      <li key={link.id} className="p-3 border rounded-md hover:bg-muted/30">
+                        <a href={link.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{link.title}</a>
+                        {link.description && <p className="text-xs text-muted-foreground mt-1">{link.description}</p>}
+                        {/* Add Edit/Delete buttons per link in future */}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle className="text-xl flex items-center"><Users className="mr-2 h-5 w-5 text-primary" /> Key Contacts</CardTitle>
+                <Button variant="outline" size="sm" onClick={() => setShowAddContactForm(!showAddContactForm)}>
+                  <PlusCircle className="mr-2 h-4 w-4" /> Add Contact
+                </Button>
               </CardHeader>
               <CardContent>
-                <ContactsDisplay contacts={idea.contacts} />
-                {/* Add UI to add/edit contacts here */}
+                {showAddContactForm && (
+                   <form onSubmit={handleAddContact} className="mb-4 p-4 border rounded-md space-y-3 bg-muted/20">
+                     <div>
+                       <Label htmlFor="contactName">Name</Label>
+                       <Input id="contactName" value={newContactName} onChange={(e) => setNewContactName(e.target.value)} placeholder="E.g., Jane Doe" required />
+                     </div>
+                     <div>
+                       <Label htmlFor="contactEmail">Email (Optional)</Label>
+                       <Input id="contactEmail" type="email" value={newContactEmail} onChange={(e) => setNewContactEmail(e.target.value)} placeholder="jane.doe@example.com" />
+                     </div>
+                     <div>
+                       <Label htmlFor="contactPhone">Phone (Optional)</Label>
+                       <Input id="contactPhone" type="tel" value={newContactPhone} onChange={(e) => setNewContactPhone(e.target.value)} placeholder="+1234567890" />
+                     </div>
+                     <div>
+                       <Label htmlFor="contactNotes">Notes (Optional)</Label>
+                       <Textarea id="contactNotes" value={newContactNotes} onChange={(e) => setNewContactNotes(e.target.value)} placeholder="E.g., Potential Advisor" />
+                     </div>
+                     <div className="flex gap-2">
+                       <Button type="submit" size="sm">Save Contact</Button>
+                       <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddContactForm(false)}>Cancel</Button>
+                     </div>
+                   </form>
+                )}
+                {!idea.contacts || idea.contacts.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No contacts added yet.</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {idea.contacts.map(contact => (
+                      <li key={contact.id} className="p-3 border rounded-md hover:bg-muted/30">
+                        <p className="font-semibold">{contact.name}</p>
+                        {contact.email && <p className="text-xs text-muted-foreground">Email: {contact.email}</p>}
+                        {contact.phone && <p className="text-xs text-muted-foreground">Phone: {contact.phone}</p>}
+                        {contact.notes && <p className="text-xs text-muted-foreground mt-1">Notes: {contact.notes}</p>}
+                        {/* Add Edit/Delete buttons per contact in future */}
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row justify-between items-center">
                 <CardTitle className="text-xl flex items-center"><BookOpen className="mr-2 h-5 w-5 text-primary" /> Research Notes</CardTitle>
+                 <Button variant="outline" size="sm" onClick={handleSaveResearchNotes}>
+                   <Save className="mr-2 h-4 w-4" /> Save Notes
+                 </Button>
               </CardHeader>
               <CardContent>
-                <ResearchNotesDisplay notes={idea.researchNotes} />
-                {/* Add UI to edit notes (e.g., a textarea) here */}
+                <Textarea
+                  value={editableResearchNotes}
+                  onChange={(e) => setEditableResearchNotes(e.target.value)}
+                  placeholder="Jot down your research findings, brainstorming, competitor analysis, etc."
+                  rows={10}
+                  className="text-base"
+                />
               </CardContent>
             </Card>
           </div>
@@ -320,3 +419,4 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   );
 }
 
+    
