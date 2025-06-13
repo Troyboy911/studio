@@ -13,7 +13,7 @@ export default function HomePage() {
         className="w-full py-20 md:py-32 relative overflow-hidden rounded-xl shadow-2xl min-h-[60vh] flex flex-col justify-center items-center"
       >
         <Image
-          src="https://placehold.co/1200x800.png"
+          src="https://images.unsplash.com/photo-1429305336325-b84ace7eba3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzdGFyc3xlbnwwfHx8fDE3NDk4MDUyODh8MA&ixlib=rb-4.1.0&q=80&w=1080"
           alt="Starry night sky with a shooting star"
           layout="fill"
           objectFit="cover"
