@@ -1,71 +1,104 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Lightbulb, Briefcase, ArrowRight, TrendingUp, Sparkles, UserCheck } from 'lucide-react';
+import { TrendingUp, Sparkles, UserCheck, PlayCircle, Star } from 'lucide-react';
 import Image from 'next/image';
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center">
+    <div className="flex flex-col items-center text-center space-y-16 md:space-y-24">
       {/* Hero Section */}
-      <section 
-        className="w-full py-20 md:py-32 bg-gradient-to-br from-primary via-primary/70 to-background relative overflow-hidden rounded-xl shadow-2xl"
+      <section
+        className="w-full py-20 md:py-32 relative overflow-hidden rounded-xl shadow-2xl min-h-[60vh] flex flex-col justify-center items-center"
       >
-        <Image 
-          src="https://placehold.co/1200x800.png" 
-          alt="Inspiring sky background" 
-          layout="fill" 
-          objectFit="cover" 
-          className="opacity-20 z-0"
-          data-ai-hint="sky clouds"
+        <Image
+          src="https://placehold.co/1200x800.png"
+          alt="Starry night sky with a shooting star"
+          layout="fill"
+          objectFit="cover"
+          className="opacity-70 z-0"
+          data-ai-hint="starry sky shooting star"
+          priority
         />
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <h1 className="text-5xl md:text-7xl font-bold text-primary-foreground mb-6">
-            Welcome to <span className="text-accent">IDream</span>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-background bg-foreground/10 backdrop-blur-sm p-8 rounded-lg">
+          <h1 className="text-5xl md:text-7xl font-bold text-background mb-6">
+            Dream big.
           </h1>
-          <p className="text-xl md:text-2xl text-primary-foreground/90 mb-10 max-w-3xl mx-auto">
-            The platform where innovative ideas meet investment opportunities. Let's build the future, together.
+          <p className="text-xl md:text-2xl text-background/90 mb-10 max-w-3xl mx-auto">
+            Turn your dreams into reality with help of AI guidance and resources.
           </p>
           <div className="space-x-4">
-            <Button size="lg" variant="default" className="bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+            <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground px-10 py-6 text-lg" asChild>
               <Link href="/dreamer">
-                I'm a Dreamer <Lightbulb className="ml-2 h-5 w-5" />
-              </Link>
-            </Button>
-            <Button size="lg" variant="outline" className="border-accent text-accent hover:bg-accent/10 hover:text-accent" asChild>
-              <Link href="/investor">
-                I'm an Investor <Briefcase className="ml-2 h-5 w-5" />
+                Get started
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Placeholder Video Section */}
+      <section className="w-full max-w-4xl mx-auto">
+        <h2 className="text-4xl font-bold mb-8 text-foreground">Discover IDream</h2>
+        <div className="aspect-video bg-muted/20 rounded-lg flex items-center justify-center border border-border shadow-lg">
+          {/* In a real app, you would embed a video player here */}
+          <div className="text-center p-8">
+            <PlayCircle className="w-24 h-24 text-primary mx-auto mb-4" />
+            <p className="text-xl text-muted-foreground">Our explainer video is coming soon!</p>
+            <p className="text-sm text-muted-foreground">(Video Player Placeholder)</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Placeholder "Save the world" Section */}
+      <section className="w-full max-w-4xl mx-auto">
+         <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="text-left">
+                <h2 className="text-4xl font-bold mb-4 text-foreground">Save the world</h2>
+                <p className="text-lg text-muted-foreground mb-6">
+                    At IDream, we believe in ideas that can make a difference. Whether it's a groundbreaking technology or a community project, your vision has the power to create positive change. Let us help you bring it to life.
+                </p>
+            </div>
+            <div>
+                <Image
+                    src="https://placehold.co/600x400.png"
+                    alt="Image related to impactful ideas or superheroes"
+                    width={600}
+                    height={400}
+                    className="rounded-lg shadow-xl"
+                    data-ai-hint="superhero flying"
+                />
+            </div>
+         </div>
+      </section>
+
+
+      {/* Features Section - Retained from previous version, can be adjusted or removed */}
       <section className="py-16 md:py-24 w-full">
         <h2 className="text-4xl font-bold mb-12 text-foreground">Why Choose IDream?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
             <CardHeader className="items-center">
-              <Sparkles className="w-12 h-12 text-accent mb-4" />
+              <Sparkles className="w-12 h-12 text-primary mb-4" />
               <CardTitle className="text-2xl">Refine Your Vision</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>Our AI-powered tools help you sharpen your ideas, research markets, and create solid plans.</CardDescription>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
             <CardHeader className="items-center">
-              <TrendingUp className="w-12 h-12 text-accent mb-4" />
+              <TrendingUp className="w-12 h-12 text-primary mb-4" />
               <CardTitle className="text-2xl">Connect & Grow</CardTitle>
             </CardHeader>
             <CardContent>
               <CardDescription>Submit your polished concepts to a network of eager investors ready to fund innovation.</CardDescription>
             </CardContent>
           </Card>
-          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card text-card-foreground">
             <CardHeader className="items-center">
-              <UserCheck className="w-12 h-12 text-accent mb-4" />
+              <UserCheck className="w-12 h-12 text-primary mb-4" />
               <CardTitle className="text-2xl">Secure & Supported</CardTitle>
             </CardHeader>
             <CardContent>
@@ -75,18 +108,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-16 w-full bg-muted/50 rounded-lg">
-        <h2 className="text-3xl font-bold mb-6 text-foreground">Ready to Start Your Journey?</h2>
-        <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-          Whether you're a dreamer with a groundbreaking idea or an investor seeking the next big thing, IDream is your launchpad.
-        </p>
-        <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground" asChild>
-          <Link href="/dreamer#start">
-            Get Started Today <ArrowRight className="ml-2 h-5 w-5" />
-          </Link>
-        </Button>
-      </section>
     </div>
   );
 }
