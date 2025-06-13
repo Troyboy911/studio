@@ -1,6 +1,7 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Home, Lightbulb, Briefcase, FileText, CloudSun } from 'lucide-react';
+import { Home, Lightbulb, Briefcase, FileText, CloudSun, Settings } from 'lucide-react';
 
 export default function Header() {
   return (
@@ -12,7 +13,7 @@ export default function Header() {
             <span>IDream</span>
           </div>
         </Link>
-        <nav className="flex items-center space-x-2 sm:space-x-4">
+        <nav className="flex items-center space-x-1 sm:space-x-2">
           <Button variant="ghost" asChild>
             <Link href="/" className="flex items-center space-x-1 text-foreground hover:text-accent">
               <Home size={18} />
@@ -35,6 +36,12 @@ export default function Header() {
             <Link href="/legal" className="flex items-center space-x-1 text-foreground hover:text-accent">
               <FileText size={18} />
               <span className="hidden sm:inline">Legal</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild>
+            <Link href="/settings" className="flex items-center space-x-1 text-foreground hover:text-accent">
+              <Settings size={18} />
+              <span className="hidden sm:inline">Settings</span>
             </Link>
           </Button>
         </nav>
