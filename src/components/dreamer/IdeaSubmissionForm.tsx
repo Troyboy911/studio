@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { refineIdeaAction, type RefineIdeaState } from "@/app/dreamer/new-idea/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,7 +30,7 @@ function SubmitButton() {
 
 export default function IdeaSubmissionForm() {
   const initialState: RefineIdeaState = {};
-  const [state, formAction] = useFormState(refineIdeaAction, initialState);
+  const [state, formAction] = useActionState(refineIdeaAction, initialState);
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
