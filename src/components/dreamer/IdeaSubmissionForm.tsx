@@ -4,6 +4,7 @@
 import { useActionState, useState, useEffect } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // Import useRouter
 import { refineIdeaAction, type RefineIdeaState } from "@/app/dreamer/new-idea/actions";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Sparkles, Lightbulb, Save, CheckCircle } from "lucide-react";
+import { Loader2, Sparkles, Lightbulb, Save, CheckCircle, PlusCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import type { DreamIdea } from "@/types";
@@ -39,15 +40,16 @@ export default function IdeaSubmissionForm() {
   const initialState: RefineIdeaState = {};
   const [state, formAction, isPending] = useActionState(refineIdeaAction, initialState);
   const { toast } = useToast();
+  const router = useRouter(); // Initialize router
   const [dreamTitle, setDreamTitle] = useState("");
-  const [isDreamSaved, setIsDreamSaved] = useState(false);
-  const [formKey, setFormKey] = useState(Date.now()); // Used to reset the form
+  // isDreamSaved is no longer needed for primary flow if we redirect
+  // const [isDreamSaved, setIsDreamSaved] = useState(false); 
+  const [formKey, setFormKey] = useState(Date.now()); 
 
-  // Effect to reset save state if new refinement happens
+  // Effect to clear title if new refinement happens (useful if user comes back to this form)
   useEffect(() => {
     if (state?.refinedIdea) {
-      setIsDreamSaved(false); // Reset save state if new refinement data comes in
-      setDreamTitle(""); // Clear previous title
+      setDreamTitle(""); 
     }
   }, [state?.refinedIdea]);
 
@@ -79,32 +81,34 @@ export default function IdeaSubmissionForm() {
       suggestions: state.suggestions || [],
       goals: [],
       meetings: [],
-      status: 'private',
+      status: 'private', // Dreams start as private
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
-    mockUserIdeas.push(newDream); // This mutates the global mock array
+    mockUserIdeas.push(newDream); 
 
     toast({
       title: "Dream Saved!",
-      description: `"${newDream.title}" has been added to My Dreams.`,
-      action: (
-        <ToastAction altText="View Dreams" asChild>
-          <Link href="/dreamer/my-dreams">View Dreams</Link>
-        </ToastAction>
-      ),
+      description: `"${newDream.title}" is ready. Taking you to the Dream Planner...`,
     });
-    setIsDreamSaved(true);
+    
+    // Redirect to the dream detail page
+    router.push(`/dreamer/my-dreams/${newDream.id}`);
+    
+    // setIsDreamSaved(true); // No longer needed if redirecting
+    // We might not need to reset the form here if we redirect immediately.
+    // If the user navigates back, formKey reset would handle it.
   };
 
+  // This function is still useful if the user explicitly wants to start fresh without submitting
   const startNewIdea = () => {
-    setFormKey(Date.now()); // Change key to force re-render of form component and reset its internal state
+    setFormKey(Date.now()); 
     setDreamTitle("");
-    setIsDreamSaved(false);
-    // Note: this won't reset `useActionState`'s `state` directly.
-    // The visual reset is achieved by re-keying the form.
-    // To fully reset `state` from `useActionState`, one might need more complex patterns or a full page navigation.
+    // If you had `state` from `useActionState` and wanted to clear its visual output:
+    // A common pattern is to also reset the `initialState` or pass it to `formAction` if the API allows,
+    // or rely on the `key` prop on the form to fully remount and reset.
+    // For this case, re-keying the form is effective for visual reset of form fields and displayed state.
   };
 
 
@@ -119,7 +123,8 @@ export default function IdeaSubmissionForm() {
           Enter your initial idea below. Our AI will help you refine it, offering suggestions to make it stronger and more compelling.
         </CardDescription>
       </CardHeader>
-      <form action={formAction} key={formKey}> {/* Add key here */}
+      {/* If formAction has completed and resulted in a redirect, this form might not be visible long enough for state.refinedIdea to be a factor */}
+      <form action={formAction} key={formKey}> 
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="idea" className="text-lg font-semibold">Your Brilliant Idea</Label>
@@ -130,7 +135,7 @@ export default function IdeaSubmissionForm() {
               rows={6}
               className="resize-none"
               aria-describedby="idea-error"
-              disabled={isPending || isDreamSaved}
+              disabled={isPending} // Only disable while refining
             />
             {state?.fieldErrors?.idea && !isPending && (
               <p id="idea-error" className="text-sm text-destructive">{state.fieldErrors.idea.join(", ")}</p>
@@ -144,14 +149,11 @@ export default function IdeaSubmissionForm() {
             </Alert>
           )}
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-           {isDreamSaved ? (
-             <Button onClick={startNewIdea} variant="outline" className="w-full sm:w-auto">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center gap-2">
+           <Button onClick={startNewIdea} variant="outline" className="w-full sm:w-auto">
                <PlusCircle className="mr-2 h-4 w-4" /> Start Another Idea
-             </Button>
-           ) : (
-            <SubmitButton />
-           )}
+           </Button>
+           <SubmitButton />
         </CardFooter>
       </form>
 
@@ -180,41 +182,26 @@ export default function IdeaSubmissionForm() {
             </div>
           </div>
 
-          {isDreamSaved ? (
-            <Alert variant="default" className="border-green-500 bg-green-50 text-green-700">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              <AlertTitle className="text-green-700">Dream Saved!</AlertTitle>
-              <AlertDescription className="text-green-600">
-                "{dreamTitle}" has been added to your "My Dreams" list.
-                <Button variant="link" asChild className="p-0 h-auto ml-1 text-green-700 hover:text-green-800">
-                  <Link href="/dreamer/my-dreams">View My Dreams</Link>
-                </Button>
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="space-y-4 p-4 border rounded-md shadow-sm bg-card">
-              <h3 className="text-xl font-semibold text-foreground">Save This Dream</h3>
-              <div className="space-y-2">
-                <Label htmlFor="dreamTitle" className="font-medium">Dream Title</Label>
-                <Input
-                  id="dreamTitle"
-                  name="dreamTitle"
-                  placeholder="Enter a catchy title for your dream"
-                  value={dreamTitle}
-                  onChange={(e) => setDreamTitle(e.target.value)}
-                  className="bg-background"
-                />
-              </div>
-              <Button onClick={handleSaveDream} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
-                <Save className="mr-2 h-4 w-4" /> Save to My Dreams
-              </Button>
+          {/* Save Dream Section */}
+          <div className="space-y-4 p-4 border rounded-md shadow-sm bg-card">
+            <h3 className="text-xl font-semibold text-foreground">Save This Dream to Planner</h3>
+            <div className="space-y-2">
+              <Label htmlFor="dreamTitle" className="font-medium">Dream Title</Label>
+              <Input
+                id="dreamTitle"
+                name="dreamTitle"
+                placeholder="Enter a catchy title for your dream"
+                value={dreamTitle}
+                onChange={(e) => setDreamTitle(e.target.value)}
+                className="bg-background"
+              />
             </div>
-          )}
+            <Button onClick={handleSaveDream} className="w-full sm:w-auto bg-primary hover:bg-primary/90">
+              <Save className="mr-2 h-4 w-4" /> Save and Go to Dream Planner
+            </Button>
+          </div>
         </CardContent>
       )}
     </Card>
   );
 }
-
-// Ensure PlusCircle is imported if used in new button
-import { PlusCircle } from 'lucide-react';
