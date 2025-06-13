@@ -12,15 +12,7 @@ export default function HomePage() {
       <section
         className="w-full py-20 md:py-32 relative overflow-hidden rounded-xl shadow-2xl min-h-[60vh] flex flex-col justify-center items-center"
       >
-        <Image
-          src="https://images.unsplash.com/photo-1429305336325-b84ace7eba3b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzdGFyc3xlbnwwfHx8fDE3NDk4MDUyODh8MA&ixlib=rb-4.1.0&q=80&w=1080"
-          alt="Starry night sky with a shooting star"
-          layout="fill"
-          objectFit="cover"
-          className="opacity-70 z-0"
-          data-ai-hint="starry sky shooting star"
-          priority
-        />
+        {/* Removed specific Image component for hero background to let global stars show */}
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-background bg-foreground/10 backdrop-blur-sm p-8 rounded-lg">
           <h1 className="text-5xl md:text-7xl font-bold text-background mb-6">
             Dream big.
@@ -62,7 +54,7 @@ export default function HomePage() {
             </div>
             <div>
                 <Image
-                    src="https://placehold.co/600x400.png"
+                    src="https://images.unsplash.com/photo-1633672140625-0f71855a521b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMnx8Y2hhbmdlJTIwdGhlJTIwd29ybGR8ZW58MHx8fHwxNzQ5ODA1NTQ4fDA&ixlib=rb-4.1.0&q=80&w=1080"
                     alt="Image related to impactful ideas or superheroes"
                     width={600}
                     height={400}
