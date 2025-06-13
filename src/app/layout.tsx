@@ -4,6 +4,7 @@ import './globals.css';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { Toaster } from "@/components/ui/toaster";
+import ModalTrigger from '@/components/layout/ModalTrigger';
 
 export const metadata: Metadata = {
   title: 'IDream - Turn Your Dreams into Reality',
@@ -29,6 +30,7 @@ export default function RootLayout({
         </main>
         <Footer />
         <Toaster />
+        <ModalTrigger />
       </body>
     </html>
   );
