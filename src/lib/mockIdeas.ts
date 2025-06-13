@@ -5,7 +5,7 @@ const mockOffersIdea1: InvestmentOffer[] = [
   {
     id: 'offer-1-1',
     ideaId: 'idea-1',
-    investorId: 'investor-alpha',
+    investorId: 'mock-investor-001', // Consistent Investor ID
     investorName: 'Alpha Ventures',
     type: 'investment',
     amount: 25000,
@@ -20,7 +20,7 @@ const mockCommunicationsIdea1: Message[] = [
   {
     id: 'msg-1-1',
     ideaId: 'idea-1',
-    senderId: 'investor-alpha',
+    senderId: 'mock-investor-001', // Consistent Investor ID
     senderName: 'Alpha Ventures',
     content: 'Following up on our offer. Are you available for a call next week to discuss?',
     timestamp: new Date(2024, 6, 5, 10, 0),
@@ -29,8 +29,8 @@ const mockCommunicationsIdea1: Message[] = [
   {
     id: 'msg-1-2',
     ideaId: 'idea-1',
-    senderId: 'dreamer-mock-id',
-    senderName: 'You',
+    senderId: 'dreamer-mock-user', // Consistent Dreamer ID
+    senderName: 'Dreamer (You)',
     content: 'Thank you for the offer and message! Yes, I am available. How about Tuesday at 2 PM?',
     timestamp: new Date(2024, 6, 5, 14, 0),
     read: true,
@@ -98,7 +98,7 @@ export const mockUserIdeas: DreamIdea[] = [
     createdAt: new Date(2024, 5, 1),
     updatedAt: new Date(2024, 5, 15),
     offers: [],
-    communications: [],
+    communications: [], // Ensure communications array exists
     isPremier: false,
   },
   {
@@ -126,7 +126,7 @@ export const mockUserIdeas: DreamIdea[] = [
     createdAt: new Date(2024, 3, 20),
     updatedAt: new Date(2024, 6, 1),
     offers: [],
-    communications: [],
+    communications: [], // Ensure communications array exists
     isPremier: true, // This one is also premier
     premierUntil: new Date(Date.now() + 36 * 60 * 60 * 1000), // Premier for the next 36 hours
   },
@@ -155,7 +155,7 @@ export const mockUserIdeas: DreamIdea[] = [
       {
         id: 'offer-4-1',
         ideaId: 'idea-4',
-        investorId: 'investor-beta',
+        investorId: 'mock-investor-001',
         investorName: 'GreenGrowth Capital',
         type: 'investment',
         amount: 75000,
@@ -165,11 +165,11 @@ export const mockUserIdeas: DreamIdea[] = [
         updatedAt: new Date(2024, 6, 10),
       },
     ],
-    communications: [
+    communications: [ // Ensure communications array exists
         {
             id: 'msg-4-1',
             ideaId: 'idea-4',
-            senderId: 'investor-beta',
+            senderId: 'mock-investor-001',
             senderName: 'GreenGrowth Capital',
             content: 'Congratulations on accepting our offer! Let\'s schedule a kick-off meeting.',
             timestamp: new Date(2024, 6, 11, 9, 0),
@@ -178,4 +178,9 @@ export const mockUserIdeas: DreamIdea[] = [
     ],
   },
 ];
+
+export const INVESTOR_MOCK_ID = 'mock-investor-001';
+export const INVESTOR_MOCK_NAME = 'Alpha Ventures'; // Or a generic name like "Investor"
+export const DREAMER_MOCK_ID = 'dreamer-mock-user';
+export const DREAMER_MOCK_NAME = 'Dreamer (You)';
 

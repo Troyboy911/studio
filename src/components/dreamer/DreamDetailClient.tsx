@@ -1,9 +1,9 @@
 
 "use client";
 
-import type { DreamIdea, Goal, Meeting, ResearchLink, Contact } from '@/types';
+import type { DreamIdea, Goal, Meeting, ResearchLink, Contact, Message } from '@/types';
 import { useState, useEffect, type FormEvent } from 'react';
-import { mockUserIdeas } from '@/lib/mockIdeas'; 
+import { mockUserIdeas, DREAMER_MOCK_ID, DREAMER_MOCK_NAME, INVESTOR_MOCK_ID } from '@/lib/mockIdeas'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import GoalChecklist from './GoalChecklist';
 import MeetingScheduler from './MeetingScheduler';
-import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2, Save } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2, Save, MessagesSquare, MailWarning } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
@@ -27,21 +27,22 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
 
-  // State for adding new research link
   const [showAddLinkForm, setShowAddLinkForm] = useState(false);
   const [newLinkTitle, setNewLinkTitle] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
   const [newLinkDescription, setNewLinkDescription] = useState('');
 
-  // State for adding new contact
   const [showAddContactForm, setShowAddContactForm] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactEmail, setNewContactEmail] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
   const [newContactNotes, setNewContactNotes] = useState('');
   
-  // State for editing research notes
   const [editableResearchNotes, setEditableResearchNotes] = useState('');
+
+  // State for dreamer's reply to investor
+  const [newDreamerReply, setNewDreamerReply] = useState('');
+  const [displayedIdeaMessages, setDisplayedIdeaMessages] = useState<Message[]>([]);
 
 
   useEffect(() => {
@@ -52,6 +53,30 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     if (foundIdea) {
       setIdea(foundIdea);
       setEditableResearchNotes(foundIdea.researchNotes || '');
+      
+      const initialMessages = [...(foundIdea.communications || [])].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      setDisplayedIdeaMessages(initialMessages);
+
+      // Mark messages from investor as read
+      let messagesUpdated = false;
+      const updatedMessages = initialMessages.map(msg => {
+        if (msg.senderId !== DREAMER_MOCK_ID && !msg.read) {
+          messagesUpdated = true;
+          return { ...msg, read: true };
+        }
+        return msg;
+      });
+      
+      if (messagesUpdated) {
+        const ideaIndex = mockUserIdeas.findIndex(i => i.id === foundIdea.id);
+        if (ideaIndex !== -1) {
+          mockUserIdeas[ideaIndex].communications = updatedMessages;
+          // Update the local idea state as well if it's used for displaying read status indicators elsewhere
+           setIdea(prevIdea => prevIdea ? {...prevIdea, communications: updatedMessages} : null);
+           setDisplayedIdeaMessages(updatedMessages);
+        }
+      }
+
     }
     setLoading(false);
   }, [ideaId]);
@@ -59,10 +84,10 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const handleDataChange = (section: keyof DreamIdea, data: any, friendlySectionName?: string) => {
     if (idea) {
       const newIdeaState = { ...idea, [section]: data, updatedAt: new Date() };
-      setIdea(newIdeaState);
+      setIdea(newIdeaState); // Update local state
       const ideaIndex = mockUserIdeas.findIndex(i => i.id === ideaId);
       if (ideaIndex !== -1) {
-        mockUserIdeas[ideaIndex] = newIdeaState;
+        mockUserIdeas[ideaIndex] = newIdeaState; // Update mock global store
       }
       toast({ title: `${friendlySectionName || section.toString().charAt(0).toUpperCase() + section.slice(1)} Updated`, description: `Your project ${friendlySectionName?.toLowerCase() || section.toString().replace(/([A-Z])/g, ' $1').toLowerCase()} have been saved.` });
     }
@@ -112,6 +137,38 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     handleDataChange('researchNotes', editableResearchNotes, "Research Notes");
   };
 
+  const handleSendDreamerReply = (e: FormEvent) => {
+    e.preventDefault();
+    if (!newDreamerReply.trim() || !idea) return;
+
+    const replyToSend: Message = {
+      id: `msg-${idea.id}-${Date.now()}`,
+      ideaId: idea.id,
+      senderId: DREAMER_MOCK_ID,
+      senderName: DREAMER_MOCK_NAME,
+      content: newDreamerReply.trim(),
+      timestamp: new Date(),
+      read: false, // Investor hasn't read it yet
+    };
+
+    const ideaIndex = mockUserIdeas.findIndex(i => i.id === idea.id);
+    if (ideaIndex !== -1) {
+      const currentIdea = mockUserIdeas[ideaIndex];
+      currentIdea.communications = [...(currentIdea.communications || []), replyToSend];
+      currentIdea.updatedAt = new Date();
+      
+      setIdea(currentIdea); // Update local state for UI refresh
+      setDisplayedIdeaMessages(prevMessages => 
+        [...(prevMessages || []), replyToSend].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+      );
+    }
+    
+    setNewDreamerReply('');
+    toast({
+      title: "Reply Sent!",
+      description: "Your reply has been sent to the investor.",
+    });
+  };
 
   const handleSubmitToInvestors = () => {
      if (!isSubscribed) {
@@ -210,6 +267,16 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
               </AlertDescription>
             </Alert>
           )}
+           {idea.status === 'reviewing_offers' && (
+             <Alert className="border-primary bg-primary/5 text-primary-foreground">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              <AlertTitle>Offers Received!</AlertTitle>
+              <AlertDescription>
+                You have received one or more offers for this idea. Check communications and manage offers below.
+              </AlertDescription>
+            </Alert>
+          )}
+
 
         </CardContent>
       </Card>
@@ -222,7 +289,7 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
            </CardHeader>
            <CardContent>
              <p className="text-accent/90 text-base">
-               To access the detailed Dream Planner (Goals, Meetings, Research, Contacts, AI Coach) and submit this idea to our investor network, an active subscription is required.
+               To access the detailed Dream Planner (Goals, Meetings, Research, Contacts, AI Coach, Investor Communications) and submit this idea to our investor network, an active subscription is required.
              </p>
            </CardContent>
            <CardFooter>
@@ -245,6 +312,58 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
         <>
           <Separator className="my-8" />
           <h2 className="text-2xl font-semibold text-foreground mb-4">Dream Planner Dashboard</h2>
+          
+          {/* Investor Communications Section */}
+          {(idea.status === 'submitted' || idea.status === 'reviewing_offers' || (idea.communications && idea.communications.length > 0)) && (
+            <Card className="mb-8 shadow-lg">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center">
+                  <MessagesSquare className="mr-2 h-6 w-6 text-primary" /> Investor Communications
+                </CardTitle>
+                 <CardDescription>
+                  View messages from and send replies to interested investors.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="max-h-96 overflow-y-auto space-y-3 p-3 border rounded-md bg-muted/20">
+                  {displayedIdeaMessages.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">No messages from investors yet.</p>
+                  ) : (
+                    displayedIdeaMessages.map(msg => (
+                      <div key={msg.id} className={`flex flex-col ${msg.senderId === DREAMER_MOCK_ID ? 'items-end' : 'items-start'}`}>
+                        <div className={`p-3 rounded-lg max-w-[75%] ${msg.senderId === DREAMER_MOCK_ID ? 'bg-primary/20 text-primary-foreground self-end' : 'bg-card'}`}>
+                          <p className="text-sm font-semibold flex items-center">
+                            {msg.senderName}
+                            {msg.senderId !== DREAMER_MOCK_ID && !msg.read && <MailWarning className="ml-2 h-4 w-4 text-accent" title="Unread"/>}
+                          </p>
+                          <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{new Date(msg.timestamp).toLocaleTimeString()} - {new Date(msg.timestamp).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <form onSubmit={handleSendDreamerReply} className="space-y-3">
+                  <div>
+                    <Label htmlFor="dreamerReply" className="sr-only">Your Reply</Label>
+                    <Textarea
+                      id="dreamerReply"
+                      value={newDreamerReply}
+                      onChange={(e) => setNewDreamerReply(e.target.value)}
+                      placeholder="Type your reply to an investor..."
+                      rows={3}
+                      required
+                      className="text-base"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full sm:w-auto bg-primary hover:bg-primary/90">
+                    <Send className="mr-2 h-4 w-4" /> Send Reply
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="grid md:grid-cols-2 gap-8">
             <GoalChecklist initialGoals={idea.goals} onGoalsChange={handleGoalsChange} />
             <MeetingScheduler initialMeetings={idea.meetings} onMeetingsChange={handleMeetingsChange} />
@@ -287,7 +406,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
                       <li key={link.id} className="p-3 border rounded-md hover:bg-muted/30">
                         <a href={link.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-primary hover:underline">{link.title}</a>
                         {link.description && <p className="text-xs text-muted-foreground mt-1">{link.description}</p>}
-                        {/* Add Edit/Delete buttons per link in future */}
                       </li>
                     ))}
                   </ul>
@@ -337,7 +455,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
                         {contact.email && <p className="text-xs text-muted-foreground">Email: {contact.email}</p>}
                         {contact.phone && <p className="text-xs text-muted-foreground">Phone: {contact.phone}</p>}
                         {contact.notes && <p className="text-xs text-muted-foreground mt-1">Notes: {contact.notes}</p>}
-                        {/* Add Edit/Delete buttons per contact in future */}
                       </li>
                     ))}
                   </ul>
@@ -374,7 +491,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
               <CardDescription>Get personalized advice, refine your plan, and overcome hurdles. (Premium Feature)</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* Q&A Section */}
               <div>
                 <h4 className="text-lg font-semibold mb-2 text-primary/90">Ask a Question</h4>
                 <Textarea placeholder="Ask your AI coach... (e.g., How can I validate this idea? What are common pitfalls?)" rows={3} disabled />
@@ -386,7 +502,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
 
               <Separator />
 
-              {/* Adjustment Assistance Section */}
               <div>
                 <h4 className="text-lg font-semibold mb-2 text-primary/90 flex items-center">
                   <Wand2 className="mr-2 h-5 w-5" /> Refine Your Plan with AI
@@ -418,5 +533,3 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     </div>
   );
 }
-
-    
