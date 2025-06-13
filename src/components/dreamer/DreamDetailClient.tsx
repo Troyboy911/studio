@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { DreamIdea, Goal, Meeting, ResearchLink, Contact, Message, InvestmentOffer } from '@/types';
@@ -38,7 +39,7 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
 
   const [idea, setIdea] = useState<DreamIdea | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isSubscribed, setIsSubscribed] = useState(false); // Layout handles actual gating, this is for UI hints if needed
+  const [isSubscribed, setIsSubscribed] = useState(false); 
   const { toast } = useToast();
 
   const [showAddLinkForm, setShowAddLinkForm] = useState(false);
@@ -67,7 +68,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const [activeTab, setActiveTab] = useState("planner");
 
   useEffect(() => {
-    // Determine default tab based on URL query param
     if (routerTab === 'offers' || routerTab === 'messages') {
       setActiveTab('investor-hub');
     } else {
@@ -78,7 +78,7 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
 
   useEffect(() => {
     const subStatus = localStorage.getItem('dreamerSubscribed') === 'true';
-    setIsSubscribed(subStatus); // Though layout handles gating, local state can be useful
+    setIsSubscribed(subStatus); 
 
     const foundIdea = mockUserIdeas.find(i => i.id === ideaId);
     if (foundIdea) {
@@ -150,7 +150,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
         }
         return { ...offer, status: decision, updatedAt: new Date() };
       }
-      // If one offer is accepted, other pending offers could be auto-rejected or left as is. For now, just update the target offer.
       return offer;
     });
 
@@ -204,13 +203,15 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     e.preventDefault();
     if (!newDreamerReply.trim() || !idea) return;
     const replyToSend: Message = { id: `msg-${idea.id}-${Date.now()}`, ideaId: idea.id, senderId: DREAMER_MOCK_ID, senderName: DREAMER_MOCK_NAME, content: newDreamerReply.trim(), timestamp: new Date(), read: false };
+    
+    const updatedCommunications = [...(idea.communications || []), replyToSend];
+    const newIdeaState = { ...idea, communications: updatedCommunications, updatedAt: new Date() };
+    setIdea(newIdeaState);
+    setDisplayedIdeaMessages(updatedCommunications.sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+
     const ideaIndex = mockUserIdeas.findIndex(i => i.id === idea.id);
     if (ideaIndex !== -1) {
-      const currentIdea = mockUserIdeas[ideaIndex];
-      currentIdea.communications = [...(currentIdea.communications || []), replyToSend];
-      currentIdea.updatedAt = new Date();
-      setIdea(currentIdea);
-      setDisplayedIdeaMessages(prev => [...(prev || []), replyToSend].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
+      mockUserIdeas[ideaIndex] = newIdeaState;
     }
     setNewDreamerReply('');
     toast({ title: "Reply Sent!", description: "Your reply has been sent." });
@@ -292,7 +293,7 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
           )}
           <div className="mt-4">
             <Label htmlFor="idea-category" className="text-sm font-medium">Idea Category</Label>
-            <Select value={selectedCategory} onValueChange={handleCategoryChange} disabled={!isIdeaMutable}>
+            <Select value={selectedCategory} onValueChange={handleCategoryChange} disabled={!isIdeaMutable && !isSubscribed}>
               <SelectTrigger id="idea-category" className="w-full md:w-[280px] mt-1">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
@@ -300,15 +301,25 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
                 {ideaCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
               </SelectContent>
             </Select>
-            {!isIdeaMutable && selectedCategory && <p className="text-xs text-muted-foreground mt-1">Idea is past submission stage, category is locked.</p>}
+            {!isIdeaMutable && <p className="text-xs text-muted-foreground mt-1">Idea is past submission stage, category is locked.</p>}
           </div>
-          {idea.status === 'private' && (
+          {idea.status === 'private' && isSubscribed && (
             <div className="flex justify-end mt-4">
               <Button onClick={handleSubmitToInvestors} className="bg-accent hover:bg-accent/90">
                 <Send className="mr-2 h-4 w-4" /> Submit to Investors
               </Button>
             </div>
           )}
+           {!isSubscribed && idea.status === 'private' && (
+             <Alert variant="default" className="mt-4 bg-accent/10 border-accent/30">
+                <Star className="h-5 w-5 text-accent" />
+                <AlertTitle className="text-accent">Subscription Required</AlertTitle>
+                <AlertDescription>
+                  You need an active subscription to submit this idea to investors. 
+                  Please subscribe via your Dreamer Portal dashboard.
+                </AlertDescription>
+            </Alert>
+           )}
         </CardContent>
       </Card>
 
@@ -370,7 +381,7 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-xl flex items-center"><DollarSign className="mr-2 h-6 w-6 text-primary" />Investment Offers</CardTitle>
-                    <CardDescription>Review offers received from investors.</CardDescription>
+                    <CardDescription>Review offers received from investors for "{idea.title}".</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {(!idea.offers || idea.offers.length === 0) ? (
@@ -389,15 +400,21 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
                                         </div>
                                         <CardDescription>
                                             Amount: ${offer.amount.toLocaleString()} ({offer.type}) | Submitted: {new Date(offer.createdAt).toLocaleDateString()}
+                                            {offer.investorFocus && ` | Focus: ${offer.investorFocus}`}
                                         </CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         {offer.message && <p className="text-sm text-muted-foreground italic">"{offer.message}"</p>}
                                     </CardContent>
-                                    {offer.status === 'pending' && (
+                                    {offer.status === 'pending' && isSubscribed && (
                                         <CardFooter className="flex gap-2 justify-end">
                                             <Button size="sm" variant="outline" className="border-red-500 text-red-600 hover:bg-red-50 hover:text-red-700" onClick={() => handleOfferDecision(offer.id, 'rejected')}>Reject Offer</Button>
                                             <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleOfferDecision(offer.id, 'accepted')}>Accept Offer</Button>
+                                        </CardFooter>
+                                    )}
+                                     {offer.status === 'pending' && !isSubscribed && (
+                                        <CardFooter>
+                                            <p className="text-xs text-muted-foreground">Subscribe to respond to offers.</p>
                                         </CardFooter>
                                     )}
                                 </Card>
@@ -410,54 +427,86 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
             <Card>
                 <CardHeader>
                     <CardTitle className="text-xl flex items-center"><MessagesSquare className="mr-2 h-6 w-6 text-primary" />Investor Communications</CardTitle>
-                    <CardDescription>View messages and reply to interested investors.</CardDescription>
+                    <CardDescription>View messages and reply to interested investors regarding "{idea.title}".</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="max-h-96 overflow-y-auto space-y-3 p-3 border rounded-md bg-muted/20">
-                    {displayedIdeaMessages.length === 0 ? <p className="text-sm text-center py-4">No messages yet.</p> : displayedIdeaMessages.map(msg => (
+                    {displayedIdeaMessages.length === 0 ? <p className="text-sm text-center py-4 text-muted-foreground">No messages yet.</p> : displayedIdeaMessages.map(msg => (
                         <div key={msg.id} className={`flex flex-col ${msg.senderId === DREAMER_MOCK_ID ? 'items-end' : 'items-start'}`}>
-                        <div className={`p-3 rounded-lg max-w-[75%] ${msg.senderId === DREAMER_MOCK_ID ? 'bg-primary/20 self-end' : 'bg-card'}`}>
+                        <div className={`p-3 rounded-lg max-w-[75%] shadow-sm ${msg.senderId === DREAMER_MOCK_ID ? 'bg-primary/30 self-end' : 'bg-card'}`}>
                             <p className="text-sm font-semibold flex items-center">{msg.senderName}{msg.senderId !== DREAMER_MOCK_ID && !msg.read && <MailWarning className="ml-2 h-4 w-4 text-accent" />}</p>
                             <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                             <p className="text-xs text-muted-foreground mt-1">{new Date(msg.timestamp).toLocaleString()}</p>
                         </div></div>
                     ))}
                     </div>
-                    <form onSubmit={handleSendDreamerReply} className="space-y-3">
-                    <Textarea value={newDreamerReply} onChange={e => setNewDreamerReply(e.target.value)} placeholder="Type reply..." rows={3} required />
-                    <Button type="submit" className="w-full sm:w-auto"><Send className="mr-2 h-4 w-4" /> Send Reply</Button>
-                    </form>
+                    {isSubscribed ? (
+                        <form onSubmit={handleSendDreamerReply} className="space-y-3">
+                            <Textarea value={newDreamerReply} onChange={e => setNewDreamerReply(e.target.value)} placeholder="Type reply..." rows={3} required />
+                            <Button type="submit" className="w-full sm:w-auto"><Send className="mr-2 h-4 w-4" /> Send Reply</Button>
+                        </form>
+                    ) : (
+                        <Alert variant="default" className="bg-accent/10 border-accent/30">
+                            <Star className="h-5 w-5 text-accent" />
+                            <AlertTitle className="text-accent">Subscription Required</AlertTitle>
+                            <AlertDescription>
+                            You need an active subscription to send messages to investors. 
+                            Please subscribe via your Dreamer Portal dashboard.
+                            </AlertDescription>
+                        </Alert>
+                    )}
                 </CardContent>
             </Card>
+            {!isSubscribed && (
+                 <Alert>
+                    <Star className="h-5 w-5 text-accent" />
+                    <AlertTitle className="text-accent">Full Investor Hub Access Requires Subscription</AlertTitle>
+                    <AlertDescription>
+                      To accept or reject offers, and to send messages to investors, an active subscription is needed. 
+                      You can view offers and messages with your current access.
+                    </AlertDescription>
+                </Alert>
+            )}
         </TabsContent>
 
         <TabsContent value="ai-coach" className="mt-6">
-          <Card className="bg-primary/5 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center text-primary"><Bot className="mr-2 h-6 w-6" /> AI Dream Coach</CardTitle>
-              <CardDescription>Get advice, refine plans, and overcome hurdles.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div ref={coachChatContainerRef} className="h-96 overflow-y-auto space-y-4 p-4 border rounded-md bg-muted/20">
-                {coachChatHistory.map((msg, index) => (
-                  <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
-                    <div className={`p-3 rounded-lg max-w-[85%] shadow-sm ${msg.role === 'user' ? 'bg-primary/30 self-end' : 'bg-card'}`}>
-                      <p className="text-sm font-semibold capitalize">{msg.role === 'model' ? 'AI Coach' : 'You'}</p>
-                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                    </div></div>
-                ))}
-                {isCoachPending && <div className="flex items-start"><div className="p-3 rounded-lg max-w-[85%] shadow-sm bg-card flex items-center"><Loader2 className="h-5 w-5 animate-spin mr-2" /><span className="text-sm">AI Coach is typing...</span></div></div>}
-                {coachState?.fieldErrors?.userMessage && <p className="text-xs text-destructive mt-1">{coachState.fieldErrors.userMessage.join(", ")}</p>}
-              </div>
-              <form onSubmit={handleAskCoachSubmit} className="flex items-start gap-2">
-                <Textarea name="userMessageInput" value={coachUserInput} onChange={e => setCoachUserInput(e.target.value)} placeholder="Ask your AI coach..." rows={2} disabled={isCoachPending} 
-                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const form = e.currentTarget.closest('form'); if (form) handleAskCoachSubmit(e as unknown as React.FormEvent<HTMLFormElement>); }}} />
-                <Button type="submit" disabled={isCoachPending || !coachUserInput.trim()} className="h-auto py-3"><Send className="h-5 w-5" /></Button>
-              </form>
-            </CardContent>
-          </Card>
+          {isSubscribed ? (
+            <Card className="bg-primary/5 border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center text-primary"><Bot className="mr-2 h-6 w-6" /> AI Dream Coach</CardTitle>
+                <CardDescription>Get advice, refine plans, and overcome hurdles for "{idea.title}".</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div ref={coachChatContainerRef} className="h-96 overflow-y-auto space-y-4 p-4 border rounded-md bg-muted/20">
+                  {coachChatHistory.map((msg, index) => (
+                    <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                      <div className={`p-3 rounded-lg max-w-[85%] shadow-sm ${msg.role === 'user' ? 'bg-primary/30 self-end' : 'bg-card'}`}>
+                        <p className="text-sm font-semibold capitalize">{msg.role === 'model' ? 'AI Coach' : 'You'}</p>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div></div>
+                  ))}
+                  {isCoachPending && <div className="flex items-start"><div className="p-3 rounded-lg max-w-[85%] shadow-sm bg-card flex items-center"><Loader2 className="h-5 w-5 animate-spin mr-2" /><span className="text-sm">AI Coach is typing...</span></div></div>}
+                  {coachState?.fieldErrors?.userMessage && <p className="text-xs text-destructive mt-1">{coachState.fieldErrors.userMessage.join(", ")}</p>}
+                </div>
+                <form onSubmit={handleAskCoachSubmit} className="flex items-start gap-2">
+                  <Textarea name="userMessageInput" value={coachUserInput} onChange={e => setCoachUserInput(e.target.value)} placeholder="Ask your AI coach..." rows={2} disabled={isCoachPending} 
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); const form = e.currentTarget.closest('form'); if (form) handleAskCoachSubmit(e as unknown as React.FormEvent<HTMLFormElement>); }}} />
+                  <Button type="submit" disabled={isCoachPending || !coachUserInput.trim()} className="h-auto py-3"><Send className="h-5 w-5" /></Button>
+                </form>
+              </CardContent>
+            </Card>
+          ) : (
+             <Alert variant="default" className="bg-accent/10 border-accent/30">
+                <Bot className="h-5 w-5 text-accent" />
+                <AlertTitle className="text-accent">AI Coach Requires Subscription</AlertTitle>
+                <AlertDescription>
+                  Unlock the AI Dream Coach with an active subscription to get personalized advice and guidance for your ideas. 
+                </AlertDescription>
+            </Alert>
+          )}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+

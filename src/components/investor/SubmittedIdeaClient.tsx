@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import InvestmentOfferForm from './InvestmentOfferForm';
-import { ArrowLeft, Lightbulb, Sparkles, Target, Clock, Send, MessagesSquare, MailWarning } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Target, Clock, Send, MessagesSquare, MailWarning, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -28,13 +28,16 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
   const { toast } = useToast();
 
   useEffect(() => {
-    const foundIdea = mockUserIdeas.find(i => i.id === ideaId && (i.status === 'submitted' || i.status === 'reviewing_offers'));
+    // Simulating a fetch. In a real app, this might be an API call.
+    // For now, we directly use and potentially modify mockUserIdeas.
+    const foundIdea = mockUserIdeas.find(i => i.id === ideaId && (i.status === 'submitted' || i.status === 'reviewing_offers' || i.status === 'funded' || i.status === 'acquired'));
     if (foundIdea) {
-      setIdea(foundIdea);
+      setIdea(foundIdea); // Set the initial idea state
+      
       const initialMessages = [...(foundIdea.communications || [])].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       setDisplayedIdeaMessages(initialMessages);
 
-      // Mark messages from dreamer as read
+      // Mark messages from dreamer as read (if not already)
       let messagesUpdated = false;
       const updatedMessages = initialMessages.map(msg => {
         if (msg.senderId !== INVESTOR_MOCK_ID && !msg.read) {
@@ -45,11 +48,13 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
       });
 
       if (messagesUpdated) {
-        const ideaIndex = mockUserIdeas.findIndex(i => i.id === foundIdea.id);
-        if (ideaIndex !== -1) {
-          mockUserIdeas[ideaIndex].communications = updatedMessages;
-          setDisplayedIdeaMessages(updatedMessages); // Update displayed messages if read status changed
+        const ideaIndexGlobal = mockUserIdeas.findIndex(i => i.id === foundIdea.id);
+        if (ideaIndexGlobal !== -1) {
+          mockUserIdeas[ideaIndexGlobal].communications = updatedMessages;
         }
+        // Update local state for UI consistency if needed immediately, though reading from mockUserIdeas should reflect it
+         setIdea(prevIdea => prevIdea ? { ...prevIdea, communications: updatedMessages } : null);
+         setDisplayedIdeaMessages(updatedMessages);
       }
 
     }
@@ -64,23 +69,23 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
       id: `msg-${idea.id}-${Date.now()}`,
       ideaId: idea.id,
       senderId: INVESTOR_MOCK_ID,
-      senderName: INVESTOR_MOCK_NAME,
+      senderName: INVESTOR_MOCK_NAME, 
       content: newInvestorMessage.trim(),
       timestamp: new Date(),
-      read: false, // Dreamer hasn't read it yet
+      read: false, 
     };
 
+    // Update the mockUserIdeas array directly
     const ideaIndex = mockUserIdeas.findIndex(i => i.id === idea.id);
     if (ideaIndex !== -1) {
       const currentIdea = mockUserIdeas[ideaIndex];
-      currentIdea.communications = [...(currentIdea.communications || []), messageToSend];
-      currentIdea.updatedAt = new Date(); // Update idea's last activity
+      const updatedCommunications = [...(currentIdea.communications || []), messageToSend];
+      mockUserIdeas[ideaIndex].communications = updatedCommunications;
+      mockUserIdeas[ideaIndex].updatedAt = new Date(); 
       
       // Update local state for immediate UI refresh
-      setIdea(currentIdea); 
-      setDisplayedIdeaMessages(prevMessages => 
-        [...(prevMessages || []), messageToSend].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-      );
+      setIdea(mockUserIdeas[ideaIndex]); 
+      setDisplayedIdeaMessages(updatedCommunications.sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()));
     }
 
     setNewInvestorMessage('');
@@ -92,7 +97,7 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
 
 
   if (loading) {
-    return <p className="text-center py-10">Loading idea details...</p>;
+    return <div className="flex justify-center items-center min-h-[calc(100vh-200px)]"><Loader2 className="h-12 w-12 animate-spin text-primary" /><p className="ml-2">Loading idea details...</p></div>;
   }
 
   if (!idea) {
@@ -108,6 +113,8 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
       </Alert>
     );
   }
+  
+  const canMakeOffer = idea.status === 'submitted' || idea.status === 'reviewing_offers';
 
   return (
     <div className="space-y-8">
@@ -125,12 +132,16 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
                 <CardTitle className="text-3xl text-primary flex items-center">
                   <Lightbulb className="mr-3 h-8 w-8" /> {idea.title}
                 </CardTitle>
-                <Badge variant="default" className="bg-accent text-accent-foreground text-sm px-3 py-1">
-                    {idea.status === 'reviewing_offers' ? 'Reviewing Offers' : 'Ready for Investment'}
+                <Badge 
+                    variant={idea.status === 'funded' || idea.status === 'acquired' ? 'default' : (idea.status === 'reviewing_offers' ? 'secondary' : 'outline')}
+                    className={`text-sm px-3 py-1 whitespace-nowrap ${idea.status === 'funded' ? 'bg-green-600 text-white' : idea.status === 'acquired' ? 'bg-purple-600 text-white' : idea.status === 'reviewing_offers' ? 'bg-blue-500 text-white' : 'bg-accent text-accent-foreground'}`}
+                >
+                    {idea.status.charAt(0).toUpperCase() + idea.status.slice(1).replace('_', ' ')}
                 </Badge>
               </div>
               <CardDescription>
                 Submitted: {new Date(idea.updatedAt).toLocaleDateString()}
+                 {idea.category && ` | Category: ${idea.category}`}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -155,7 +166,8 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
           { (idea.goals?.length > 0 || idea.meetings?.length > 0) &&
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-xl">Project Plan</CardTitle>
+                    <CardTitle className="text-xl">Project Plan Overview</CardTitle>
+                     <CardDescription>Key milestones and objectives set by the dreamer.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {idea.goals && idea.goals.length > 0 && (
@@ -178,7 +190,6 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
                 </CardContent>
             </Card>
           }
-           {/* Messaging Section */}
            <Card className="shadow-lg">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
@@ -192,8 +203,11 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
                 ) : (
                   displayedIdeaMessages.map(msg => (
                     <div key={msg.id} className={`flex flex-col ${msg.senderId === INVESTOR_MOCK_ID ? 'items-end' : 'items-start'}`}>
-                      <div className={`p-3 rounded-lg max-w-[75%] ${msg.senderId === INVESTOR_MOCK_ID ? 'bg-primary/20 text-primary-foreground self-end' : 'bg-card'}`}>
-                        <p className="text-sm font-semibold">{msg.senderName}</p>
+                      <div className={`p-3 rounded-lg max-w-[75%] shadow-sm ${msg.senderId === INVESTOR_MOCK_ID ? 'bg-primary/30 text-primary-foreground self-end' : 'bg-card'}`}>
+                        <p className="text-sm font-semibold flex items-center">
+                            {msg.senderName} 
+                            {msg.senderId === INVESTOR_MOCK_ID && !msg.read && <MailWarning className="ml-2 h-4 w-4 text-muted-foreground" title="Sent, unread by dreamer"/>}
+                        </p>
                         <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                         <p className="text-xs text-muted-foreground mt-1">{new Date(msg.timestamp).toLocaleTimeString()} - {new Date(msg.timestamp).toLocaleDateString()}</p>
                       </div>
@@ -224,22 +238,26 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-          <InvestmentOfferForm idea={idea} />
-          {/* Placeholder for Dreamer Profile Snippet - Future Feature */}
+          {canMakeOffer ? (
+            <InvestmentOfferForm idea={idea} />
+          ) : (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="text-lg">Offer Stage Closed</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-sm text-muted-foreground">
+                        This idea is currently {idea.status === 'funded' ? 'funded' : 'acquired'} and no longer accepting new offers.
+                    </p>
+                </CardContent>
+            </Card>
+          )}
           <Card className="shadow-md">
             <CardHeader>
                 <CardTitle className="text-lg">About the Dreamer</CardTitle>
             </CardHeader>
             <CardContent>
-                <p className="text-sm text-muted-foreground">(Dreamer profile information will be displayed here once available and shared.)</p>
-                {/* 
-                <Avatar>
-                    <AvatarImage src={idea.dreamer?.avatarUrl} />
-                    <AvatarFallback>{idea.dreamer?.name?.substring(0,1) || 'D'}</AvatarFallback>
-                </Avatar>
-                <p className="font-semibold">{idea.dreamer?.name}</p>
-                <p className="text-xs text-muted-foreground">{idea.dreamer?.bio?.substring(0,100)}...</p>
-                 */}
+                <p className="text-sm text-muted-foreground">(Dreamer profile information will be displayed here once available and shared by the dreamer.)</p>
             </CardContent>
           </Card>
         </div>
@@ -247,3 +265,4 @@ export default function SubmittedIdeaClient({ ideaId }: SubmittedIdeaClientProps
     </div>
   );
 }
+
