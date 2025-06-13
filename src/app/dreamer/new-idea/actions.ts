@@ -1,3 +1,4 @@
+
 "use server";
 
 import { ideaRefinement, type IdeaRefinementInput, type IdeaRefinementOutput } from "@/ai/flows/idea-refinement";
@@ -8,6 +9,7 @@ const RefineSchema = z.object({
 });
 
 export interface RefineIdeaState {
+  originalIdea?: string; // Added to pass original idea back
   refinedIdea?: string;
   suggestions?: string[];
   error?: string;
@@ -38,6 +40,7 @@ export async function refineIdeaAction(
   try {
     const result: IdeaRefinementOutput = await ideaRefinement(input);
     return {
+      originalIdea: validatedFields.data.idea, // Return the original idea
       refinedIdea: result.refinedIdea,
       suggestions: result.suggestions,
     };
