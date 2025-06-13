@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import GoalChecklist from './GoalChecklist';
 import MeetingScheduler from './MeetingScheduler';
-import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2 } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
@@ -272,19 +272,44 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
               <CardTitle className="text-xl flex items-center text-primary">
                 <MessageSquare className="mr-2 h-6 w-6" /> AI Dream Coach
               </CardTitle>
-              <CardDescription>Ask questions about your idea, get advice, and overcome hurdles. (Premium Feature)</CardDescription>
+              <CardDescription>Get personalized advice, refine your plan, and overcome hurdles. (Premium Feature)</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Textarea placeholder="Ask your AI coach a question... (e.g., How can I validate this idea?)" rows={3} disabled />
-              <div className="flex justify-between items-center">
-                <p className="text-xs text-muted-foreground">Mock: 5 / 10 queries remaining this month.</p>
-                <Button disabled className="bg-primary hover:bg-primary/90">Ask Coach</Button>
+            <CardContent className="space-y-6">
+              {/* Q&A Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-2 text-primary/90">Ask a Question</h4>
+                <Textarea placeholder="Ask your AI coach... (e.g., How can I validate this idea? What are common pitfalls?)" rows={3} disabled />
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-muted-foreground">Mock: 5 / 10 queries remaining this month.</p>
+                  <Button disabled className="bg-primary hover:bg-primary/90 text-primary-foreground">Ask Coach</Button>
+                </div>
               </div>
-              <Alert>
+
+              <Separator />
+
+              {/* Adjustment Assistance Section */}
+              <div>
+                <h4 className="text-lg font-semibold mb-2 text-primary/90 flex items-center">
+                  <Wand2 className="mr-2 h-5 w-5" /> Refine Your Plan with AI
+                </h4>
+                <Textarea 
+                  placeholder="Describe an aspect of your dream you'd like to adjust or improve with AI's help... (e.g., 'Make my target audience more specific', 'Strengthen my unique selling proposition')" 
+                  rows={4} 
+                  disabled 
+                />
+                <div className="flex justify-end mt-2">
+                  <Button disabled className="bg-primary hover:bg-primary/90 text-primary-foreground">Get AI Adjustment Ideas</Button>
+                </div>
+                <div className="mt-3 p-3 bg-muted/30 rounded-md min-h-[50px]">
+                    <p className="text-sm text-muted-foreground">AI-suggested adjustments will appear here...</p>
+                </div>
+              </div>
+              
+              <Alert className="mt-4">
                 <Sparkles className="h-4 w-4" />
-                <AlertTitle>Coming Soon!</AlertTitle>
+                <AlertTitle>Full AI Coach Coming Soon!</AlertTitle>
                 <AlertDescription>
-                  Full AI Coach Q&amp;A functionality is under development. This will allow you to get personalized advice for your dream.
+                  Advanced Q&A and AI-assisted plan refinement functionalities are under development. These tools will help you polish every aspect of your dream.
                 </AlertDescription>
               </Alert>
             </CardContent>
@@ -294,3 +319,4 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     </div>
   );
 }
+
