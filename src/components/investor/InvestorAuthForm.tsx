@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type FormEvent } from 'react';
@@ -22,7 +23,8 @@ export default function InvestorAuthForm() {
     // Mock authentication: any email/password will work for this prototype
     if (email && password) {
       localStorage.setItem('investorAuthenticated', 'true');
-      router.push('/investor'); // Redirect to investor dashboard
+      localStorage.setItem('investorApproved', 'false'); // Investor accounts start as not approved
+      router.push('/investor'); // Redirect to investor dashboard (layout will handle approval check)
     } else {
       setError('Please enter both email and password.');
     }
@@ -36,7 +38,7 @@ export default function InvestorAuthForm() {
           Investor Access
         </CardTitle>
         <CardDescription>
-          Sign in to access exclusive investment opportunities and connect with innovative dreamers.
+          Sign in to access exclusive investment opportunities. New accounts require approval.
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
@@ -78,7 +80,8 @@ export default function InvestorAuthForm() {
       </form>
       <CardContent className="text-center text-sm text-muted-foreground pt-4">
         <p>This is a prototype. Any email/password will work.</p>
-        <p className="mt-2">Don't have an account? <a href="#" className="underline text-primary hover:text-primary/80" onClick={(e) => {e.preventDefault(); alert("Sign up is not implemented in this prototype.");}}>Sign up (mock)</a></p>
+        <p className="mt-2">Investor accounts require approval after sign-up/sign-in to view opportunities.</p>
+        <p className="mt-1">Don't have an account? <a href="#" className="underline text-primary hover:text-primary/80" onClick={(e) => {e.preventDefault(); alert("Sign up is not implemented in this prototype. After 'signing in' with any credentials, your mock account will be pending approval.");}}>Sign up (mock)</a></p>
       </CardContent>
     </Card>
   );
