@@ -41,7 +41,7 @@ export interface InvestmentOffer {
   id: string;
   ideaId: string;
   investorId: string; // Mock, replace with actual ID if auth is added
-  investorName: string; 
+  investorName: string;
   type: 'buyout' | 'investment';
   amount: number;
   message?: string;
@@ -66,4 +66,7 @@ export interface DreamIdea {
   updatedAt: Date;
   offers?: InvestmentOffer[];
   communications?: Message[];
+  isPremier?: boolean;
+  premierUntil?: Date;
 }
+
