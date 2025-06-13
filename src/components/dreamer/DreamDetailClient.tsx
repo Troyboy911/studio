@@ -2,7 +2,7 @@
 "use client";
 
 import type { DreamIdea, Goal, Meeting, ResearchLink, Contact, Message } from '@/types';
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent, useActionState, useRef } from 'react';
 import { mockUserIdeas, DREAMER_MOCK_ID, DREAMER_MOCK_NAME, INVESTOR_MOCK_ID } from '@/lib/mockIdeas'; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,12 +11,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import GoalChecklist from './GoalChecklist';
 import MeetingScheduler from './MeetingScheduler';
-import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2, Save, MessagesSquare, MailWarning, Tag } from 'lucide-react';
+import { ArrowLeft, Lightbulb, Sparkles, Send, CheckCircle, Lock, Star, Link as LinkIcon, Users, BookOpen, MessageSquare, Edit, Trash2, PlusCircle, Wand2, Save, MessagesSquare, MailWarning, Tag, Loader2, Bot } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { askCoachAction, type AskCoachState } from '@/app/dreamer/my-dreams/coach-actions';
 
 interface DreamDetailClientProps {
   ideaId: string;
@@ -24,6 +25,10 @@ interface DreamDetailClientProps {
 
 const ideaCategories = ["Technology", "Social Impact", "Sustainability", "Education", "Healthcare", "Arts & Culture", "E-commerce", "Finance", "Other"];
 
+interface CoachChatMessage {
+  role: 'user' | 'model';
+  content: string;
+}
 
 export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const [idea, setIdea] = useState<DreamIdea | null>(null);
@@ -45,9 +50,15 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
   const [editableResearchNotes, setEditableResearchNotes] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
 
-  // State for dreamer's reply to investor
   const [newDreamerReply, setNewDreamerReply] = useState('');
   const [displayedIdeaMessages, setDisplayedIdeaMessages] = useState<Message[]>([]);
+
+  // AI Coach State
+  const initialCoachState: AskCoachState = {};
+  const [coachState, coachFormAction, isCoachPending] = useActionState(askCoachAction, initialCoachState);
+  const [coachChatHistory, setCoachChatHistory] = useState<CoachChatMessage[]>([]);
+  const [coachUserInput, setCoachUserInput] = useState('');
+  const coachChatContainerRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
@@ -63,7 +74,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
       const initialMessages = [...(foundIdea.communications || [])].sort((a,b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
       setDisplayedIdeaMessages(initialMessages);
 
-      // Mark messages from investor as read
       let messagesUpdated = false;
       const updatedMessages = initialMessages.map(msg => {
         if (msg.senderId !== DREAMER_MOCK_ID && !msg.read) {
@@ -81,10 +91,35 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
            setDisplayedIdeaMessages(updatedMessages);
         }
       }
+      // Initialize AI Coach chat
+      setCoachChatHistory([{ role: 'model', content: `Hello! I'm your AI Dream Coach. How can I help you with "${foundIdea.title}" today?`}]);
+
 
     }
     setLoading(false);
   }, [ideaId]);
+
+  // AI Coach: Handle response from server action
+  useEffect(() => {
+    if (coachState?.coachResponse) {
+      setCoachChatHistory(prev => [...prev, { role: 'model', content: coachState.coachResponse as string }]);
+      // If the user's message was part of the state, we can use it to confirm which message this response is for
+      // For now, we assume it's for the last user message added optimistically.
+    }
+    if (coachState?.error) {
+      toast({ title: "AI Coach Error", description: coachState.error, variant: "destructive" });
+      // Optionally remove the optimistic user message if the call failed.
+      // Or add an error message from the 'model'.
+      setCoachChatHistory(prev => [...prev, {role: 'model', content: `Sorry, I encountered an error: ${coachState.error}`}]);
+    }
+  }, [coachState, toast]);
+
+  // AI Coach: Scroll to bottom of chat
+  useEffect(() => {
+    if (coachChatContainerRef.current) {
+      coachChatContainerRef.current.scrollTop = coachChatContainerRef.current.scrollHeight;
+    }
+  }, [coachChatHistory]);
   
   const handleDataChange = (section: keyof DreamIdea, data: any, friendlySectionName?: string) => {
     if (idea) {
@@ -203,9 +238,31 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
     }
   };
 
+  const handleAskCoachSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!coachUserInput.trim() || !idea) return;
+
+    // Optimistically add user's message to chat
+    setCoachChatHistory(prev => [...prev, { role: 'user', content: coachUserInput.trim() }]);
+    
+    const formData = new FormData(event.currentTarget);
+    formData.set('userMessage', coachUserInput.trim()); // ensure current input is used
+    formData.set('ideaId', idea.id);
+    formData.set('ideaTitle', idea.title);
+    formData.set('ideaOriginalText', idea.originalText);
+    if (idea.refinedText) formData.set('ideaRefinedText', idea.refinedText);
+    
+    // Pass only previous messages, not the current user input which is in formData
+    const historyForAction = coachChatHistory.filter(msg => msg.role === 'model' || (msg.role === 'user' && msg.content !== coachUserInput.trim()));
+    formData.set('chatHistory', JSON.stringify(historyForAction));
+    
+    coachFormAction(formData);
+    setCoachUserInput(''); // Clear input after submission attempt
+  };
+
 
   if (loading) {
-    return <p>Loading dream details...</p>;
+    return <div className="flex justify-center items-center min-h-[calc(100vh-200px)]"><Loader2 className="h-12 w-12 animate-spin text-primary" /><p className="ml-2">Loading dream details...</p></div>;
   }
 
   if (!idea) {
@@ -291,7 +348,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
         </CardContent>
       </Card>
 
-      {/* Idea Category Card - Gated by Subscription for editing, but visible */}
         <Card>
             <CardHeader>
                 <CardTitle className="text-xl flex items-center">
@@ -317,6 +373,14 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
                 <p className="text-muted-foreground">
                     {selectedCategory ? `Category: ${selectedCategory}` : 'No category set. Subscribe to categorize.'}
                 </p>
+                )}
+                 {!isSubscribed && (
+                    <Alert className="mt-4 border-accent/50 bg-accent/10">
+                        <Star className="h-4 w-4 text-accent" />
+                        <AlertDescription className="text-accent/90">
+                        Subscribe to IDream Premium to categorize your ideas.
+                        </AlertDescription>
+                    </Alert>
                 )}
             </CardContent>
         </Card>
@@ -349,7 +413,6 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
          </Card>
        )}
 
-      {/* Detailed Planner Sections - Gated by Subscription */}
       {isSubscribed && (
         <>
           <Separator className="my-8" />
@@ -527,58 +590,60 @@ export default function DreamDetailClient({ ideaId }: DreamDetailClientProps) {
           <Card className="mt-8 bg-primary/5 border-primary/20">
             <CardHeader>
               <CardTitle className="text-xl flex items-center text-primary">
-                <MessageSquare className="mr-2 h-6 w-6" /> AI Dream Coach
+                <Bot className="mr-2 h-6 w-6" /> AI Dream Coach
               </CardTitle>
-              <CardDescription>Get personalized advice, refine your plan, and overcome hurdles. (Premium Feature)</CardDescription>
+              <CardDescription>Get personalized advice, refine your plan, and overcome hurdles.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-3">
-                <div className="mt-2 p-3 bg-muted/30 rounded-md min-h-[100px] space-y-2 flex flex-col">
-                  <div className="text-sm p-2.5 rounded-lg bg-card shadow-sm self-start max-w-[80%]">
-                    <p className="font-semibold text-primary/90">AI Coach:</p>
-                    <p>Hello! I'm your AI Dream Coach. Ask me anything about "{idea.title}" or your entrepreneurial journey!</p>
+            <CardContent className="space-y-4">
+              <div ref={coachChatContainerRef} className="h-96 overflow-y-auto space-y-4 p-4 border rounded-md bg-muted/20">
+                {coachChatHistory.map((msg, index) => (
+                  <div key={index} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                    <div className={`p-3 rounded-lg max-w-[85%] shadow-sm ${msg.role === 'user' ? 'bg-primary/30 text-primary-foreground self-end' : 'bg-card'}`}>
+                      <p className="text-sm font-semibold capitalize">{msg.role === 'model' ? 'AI Coach' : 'You'}</p>
+                      <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                    </div>
                   </div>
-                   {/* Example User Message Placeholder - to be driven by actual chat state later */}
-                  {/* <div className="text-sm p-2.5 rounded-lg bg-primary/20 text-primary-foreground shadow-sm self-end max-w-[80%]">
-                    <p className="font-semibold">You:</p>
-                    <p>How can I best validate this idea with potential customers?</p>
-                  </div> */}
-                </div>
-                <Textarea placeholder="Ask your AI coach... (e.g., How can I validate this idea?)" rows={3} disabled />
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-muted-foreground">Mock: Full AI Coach functionality coming soon.</p>
-                  <Button disabled className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Send className="mr-2 h-4 w-4" /> Ask Coach
-                  </Button>
-                </div>
+                ))}
+                {isCoachPending && (
+                  <div className="flex items-start">
+                     <div className="p-3 rounded-lg max-w-[85%] shadow-sm bg-card flex items-center">
+                        <Loader2 className="h-5 w-5 animate-spin mr-2 text-primary" />
+                        <span className="text-sm text-muted-foreground">AI Coach is typing...</span>
+                    </div>
+                  </div>
+                )}
+                 {coachState?.fieldErrors?.userMessage && (
+                    <p className="text-xs text-destructive mt-1">{coachState.fieldErrors.userMessage.join(", ")}</p>
+                  )}
               </div>
-
-              <Separator />
-
-              <div>
-                <h4 className="text-lg font-semibold mb-2 text-primary/90 flex items-center">
-                  <Wand2 className="mr-2 h-5 w-5" /> Refine Your Plan with AI
-                </h4>
-                <Textarea 
-                  placeholder="Describe an aspect of your dream you'd like to adjust or improve with AI's help... (e.g., 'Make my target audience more specific', 'Strengthen my unique selling proposition')" 
-                  rows={4} 
-                  disabled 
+              <form onSubmit={handleAskCoachSubmit} className="flex items-start gap-2">
+                <Textarea
+                  name="userMessageInput" // Name distinct from form data 'userMessage' to avoid conflicts if needed
+                  value={coachUserInput}
+                  onChange={(e) => setCoachUserInput(e.target.value)}
+                  placeholder="Ask your AI coach..."
+                  rows={2}
+                  className="flex-grow text-base"
+                  disabled={isCoachPending}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      // Safely cast target to HTMLFormElement if the form is the direct parent
+                      const form = e.currentTarget.closest('form');
+                      if (form) {
+                        // Create a submit event (or directly call the submit handler)
+                        // form.requestSubmit(); // Modern way
+                        // For broader compatibility or if direct call is simpler:
+                        handleAskCoachSubmit(e as unknown as React.FormEvent<HTMLFormElement>); // This might need refinement for type safety
+                      }
+                    }
+                  }}
                 />
-                <div className="flex justify-end mt-2">
-                  <Button disabled className="bg-primary hover:bg-primary/90 text-primary-foreground">Get AI Adjustment Ideas</Button>
-                </div>
-                <div className="mt-3 p-3 bg-muted/30 rounded-md min-h-[50px]">
-                    <p className="text-sm text-muted-foreground">AI-suggested adjustments will appear here...</p>
-                </div>
-              </div>
-              
-              <Alert className="mt-4">
-                <Sparkles className="h-4 w-4" />
-                <AlertTitle>Full AI Coach Coming Soon!</AlertTitle>
-                <AlertDescription>
-                  Advanced Q&A and AI-assisted plan refinement functionalities are under development. These tools will help you polish every aspect of your dream.
-                </AlertDescription>
-              </Alert>
+                <Button type="submit" disabled={isCoachPending || !coachUserInput.trim()} className="bg-primary hover:bg-primary/90 text-primary-foreground h-auto py-3">
+                  {isCoachPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                  <span className="sr-only">Send message</span>
+                </Button>
+              </form>
             </CardContent>
           </Card>
         </>
