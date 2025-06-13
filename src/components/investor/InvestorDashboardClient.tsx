@@ -90,8 +90,8 @@ export default function InvestorDashboardClient() {
       ) : (
         <>
           {activePremierIdeas.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-2xl font-semibold text-foreground flex items-center">
+            <section className="space-y-4 bg-yellow-500/5 dark:bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 md:p-6 mb-8">
+              <h2 className="text-2xl font-semibold text-yellow-500 flex items-center">
                 <Zap className="mr-2 h-6 w-6 text-yellow-500" /> Premier Ideas
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -99,13 +99,12 @@ export default function InvestorDashboardClient() {
                   <IdeaCard key={idea.id} idea={idea} isPremierActive={true} />
                 ))}
               </div>
-              <Separator className="my-6" />
             </section>
           )}
 
           {regularIdeas.length > 0 && (
              <section className="space-y-4">
-              {activePremierIdeas.length > 0 && <h2 className="text-2xl font-semibold text-foreground">Other Ideas</h2>}
+              {activePremierIdeas.length > 0 && <h2 className="text-2xl font-semibold text-foreground mb-4">Other Ideas</h2>}
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {regularIdeas.map(idea => (
                   <IdeaCard key={idea.id} idea={idea} />
