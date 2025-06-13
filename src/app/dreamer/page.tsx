@@ -5,17 +5,32 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Eye, TrendingUp, Award, MessageSquare, Briefcase, ChevronRight, CheckCircle, MailWarning, Hourglass } from 'lucide-react';
-import { mockUserIdeas } from '@/lib/mockIdeas'; // Assuming this is where mock data comes from
+import { PlusCircle, Eye, TrendingUp, Award, MessageSquare, Briefcase, ChevronRight, CheckCircle, MailWarning, Hourglass, ListChecks, Bell, Activity } from 'lucide-react';
+import { mockUserIdeas } from '@/lib/mockIdeas'; 
 import type { DreamIdea, InvestmentOffer, Message } from '@/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
+
+interface IdeaStatusCounts {
+  private: number;
+  submitted: number;
+  reviewing_offers: number;
+  funded: number;
+  acquired: number;
+}
 
 function DreamerDashboardPage() {
   const [userIdeas, setUserIdeas] = useState<DreamIdea[]>([]);
   const [fundedIdeas, setFundedIdeas] = useState<DreamIdea[]>([]);
   const [offers, setOffers] = useState<InvestmentOffer[]>([]);
   const [communications, setCommunications] = useState<Message[]>([]);
+  const [ideaCounts, setIdeaCounts] = useState<IdeaStatusCounts>({
+    private: 0,
+    submitted: 0,
+    reviewing_offers: 0,
+    funded: 0,
+    acquired: 0,
+  });
 
   useEffect(() => {
     // In a real app, you'd fetch this data for the logged-in user
@@ -38,10 +53,73 @@ function DreamerDashboardPage() {
     }, [] as (Message & {ideaTitle?: string})[]);
     setCommunications(allMessages.sort((a,b) => b.timestamp.getTime() - a.timestamp.getTime()).slice(0, 3)); // Show latest 3
 
+    // Calculate idea counts
+    const counts = mockUserIdeas.reduce((acc, idea) => {
+      acc[idea.status] = (acc[idea.status] || 0) + 1;
+      return acc;
+    }, { private: 0, submitted: 0, reviewing_offers: 0, funded: 0, acquired: 0 } as IdeaStatusCounts);
+    setIdeaCounts(counts);
+
   }, []);
 
   return (
     <div className="space-y-10">
+      {/* Idea Status Summary */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4 text-foreground flex items-center">
+            <ListChecks className="mr-3 h-7 w-7 text-primary" /> Idea Snapshot
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <Card className="bg-muted/30">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Private Ideas</CardTitle>
+                    <CardDescription>Currently in development</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold text-foreground">{ideaCounts.private}</div>
+                </CardContent>
+            </Card>
+            <Card className="bg-muted/30">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Submitted</CardTitle>
+                    <CardDescription>Awaiting investor review</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold text-accent">{ideaCounts.submitted}</div>
+                </CardContent>
+            </Card>
+             <Card className="bg-muted/30">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Reviewing Offers</CardTitle>
+                    <CardDescription>Actively managing offers</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold text-blue-500">{ideaCounts.reviewing_offers}</div>
+                </CardContent>
+            </Card>
+            <Card className="bg-green-500/10">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium text-green-700">Funded</CardTitle>
+                    <CardDescription className="text-green-600">Investment secured!</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold text-green-600">{ideaCounts.funded}</div>
+                </CardContent>
+            </Card>
+            <Card className="bg-purple-500/10">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium text-purple-700">Acquired</CardTitle>
+                    <CardDescription className="text-purple-600">Successfully exited!</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-4xl font-bold text-purple-600">{ideaCounts.acquired}</div>
+                </CardContent>
+            </Card>
+        </div>
+      </section>
+
+      <Separator />
+
       {/* Quick Actions */}
       <section>
         <h2 className="text-2xl font-semibold mb-4 text-foreground">Quick Actions</h2>
@@ -76,6 +154,46 @@ function DreamerDashboardPage() {
       </section>
 
       <Separator />
+      
+      {/* Recent Activity / Notifications Placeholder */}
+      <section>
+        <h2 className="text-2xl font-semibold mb-4 text-foreground flex items-center">
+            <Bell className="mr-3 h-7 w-7 text-yellow-500" /> Recent Activity & Notifications
+        </h2>
+        <Card className="bg-muted/20">
+            <CardContent className="pt-6">
+                <div className="space-y-4">
+                    <div className="flex items-start p-3 border-b border-border/50">
+                        <Activity className="h-5 w-5 text-primary mr-3 mt-1 shrink-0" />
+                        <div>
+                            <p className="font-medium">Investor Alpha Ventures <span className="text-muted-foreground">viewed your idea:</span> "Eco-Friendly Packaging Solution"</p>
+                            <p className="text-xs text-muted-foreground">2 hours ago (Mock)</p>
+                        </div>
+                    </div>
+                    <div className="flex items-start p-3 border-b border-border/50">
+                        <MailWarning className="h-5 w-5 text-accent mr-3 mt-1 shrink-0" />
+                        <div>
+                            <p className="font-medium">New Message <span className="text-muted-foreground">from Investor Beta Corp regarding:</span> "AI Language Companion"</p>
+                            <p className="text-xs text-muted-foreground">1 day ago (Mock)</p>
+                        </div>
+                    </div>
+                     <div className="flex items-start p-3">
+                        <CheckCircle className="h-5 w-5 text-green-500 mr-3 mt-1 shrink-0" />
+                        <div>
+                            <p className="font-medium">Your idea "Community Skill-Share Platform" <span className="text-muted-foreground">was successfully submitted to investors.</span></p>
+                            <p className="text-xs text-muted-foreground">3 days ago (Mock)</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="mt-6 text-center">
+                    <Button variant="outline" disabled>View All Notifications (Coming Soon)</Button>
+                </div>
+            </CardContent>
+        </Card>
+      </section>
+
+      <Separator />
+
 
       {/* Funded/Acquired Dreams */}
       {fundedIdeas.length > 0 && (
