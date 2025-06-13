@@ -1,5 +1,6 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, ShieldCheck } from 'lucide-react';
+import { FileText, ShieldCheck, BookOpen } from 'lucide-react'; // Added BookOpen
 
 export default function LegalPage() {
   return (
@@ -67,15 +68,29 @@ export default function LegalPage() {
       </Card>
        <Card>
         <CardHeader>
-          <CardTitle>Platform Usage</CardTitle>
+          <CardTitle className="flex items-center"><BookOpen className="mr-2 h-5 w-5 text-primary" /> Platform Usage</CardTitle>
         </CardHeader>
-        <CardContent className="text-muted-foreground">
+        <CardContent className="space-y-4 text-muted-foreground">
           <p>
             Our general Terms of Use and Privacy Policy govern your use of the IDream platform. These documents detail
             data handling, user conduct, dispute resolution, and other important aspects of our service.
           </p>
-          <ul className="list-disc pl-5 mt-2 space-y-1">
-            <li>General Terms of Use (Coming Soon)</li>
+          
+          <div className="space-y-2">
+            <h4 className="font-semibold text-foreground/90">General Terms of Use (Placeholder)</h4>
+            <p className="text-sm">
+              Welcome to IDream! These terms and conditions outline the rules and regulations for the use of IDream's Website, located at idream.app.
+              By accessing this website we assume you accept these terms and conditions. Do not continue to use IDream if you do not agree to take all of the terms and conditions stated on this page.
+            </p>
+            <p className="text-sm">
+              The following terminology applies to these Terms and Conditions, Privacy Statement and Disclaimer Notice and all Agreements: "Client", "You" and "Your" refers to you, the person log on this website and compliant to the Company’s terms and conditions. "The Company", "Ourselves", "We", "Our" and "Us", refers to our Company. "Party", "Parties", or "Us", refers to both the Client and ourselves. All terms refer to the offer, acceptance and consideration of payment necessary to undertake the process of our assistance to the Client in the most appropriate manner for the express purpose of meeting the Client’s needs in respect of provision of the Company’s stated services, in accordance with and subject to, prevailing law of Netherlands. Any use of the above terminology or other words in the singular, plural, capitalization and/or he/she or they, are taken as interchangeable and therefore as referring to same. This is placeholder text and does not constitute a legally binding agreement.
+            </p>
+            <p className="text-xs italic mt-1">
+              (This is example placeholder content. For a real application, you must consult with a legal professional to draft comprehensive and appropriate Terms of Use.)
+            </p>
+          </div>
+
+          <ul className="list-disc pl-5 mt-4 space-y-1">
             <li>Privacy Policy (Coming Soon)</li>
             <li>Cookie Policy (Coming Soon)</li>
           </ul>
@@ -87,3 +102,4 @@ export default function LegalPage() {
     </div>
   );
 }
+
