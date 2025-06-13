@@ -7,23 +7,72 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Edit3, Send, CheckCircle, Hourglass, Star, Lock, Zap } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { ArrowRight, Edit3, Send, CheckCircle, Hourglass, Star, Lock, Zap, CreditCard } from 'lucide-react';
 import { mockUserIdeas as initialMockIdeas } from '@/lib/mockIdeas';
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from 'date-fns';
 
+function MockPremierPaymentDialog({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  ideaTitle 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onConfirm: () => void, 
+  ideaTitle?: string 
+}) {
+  if (!isOpen) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={(openState) => !openState && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center text-xl">
+            <Zap className="mr-3 h-6 w-6 text-yellow-500" /> Feature Your Dream
+          </DialogTitle>
+          <DialogDescription className="pt-2">
+            Make "<strong>{ideaTitle || 'Your Dream'}</strong>" stand out to investors for 24 hours.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Card className="bg-muted/30">
+            <CardContent className="pt-6">
+              <p className="text-center font-semibold text-lg">Premier Feature (24h)</p>
+              <p className="text-center text-3xl font-bold text-yellow-500 mt-2">$4.99</p>
+              <p className="text-center text-xs text-muted-foreground mt-1">(Mock Price - No Real Charge)</p>
+            </CardContent>
+          </Card>
+        </div>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button type="button" onClick={onConfirm} className="bg-yellow-500 hover:bg-yellow-500/90 text-yellow-foreground">
+            <CreditCard className="mr-2 h-4 w-4" /> Confirm & Feature (Mock)
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
 export default function MyIdeasClient() {
   const [ideas, setIdeas] = useState<DreamIdea[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [showPremierPaymentDialog, setShowPremierPaymentDialog] = useState(false);
+  const [selectedIdeaForPremier, setSelectedIdeaForPremier] = useState<DreamIdea | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     const subStatus = localStorage.getItem('dreamerSubscribed') === 'true';
     setIsSubscribed(subStatus);
-
-    // Simulate fetching user-specific ideas. In a real app, this would be an API call.
-    // For now, we just use the mock data as is, but we might filter by a user ID later.
-    setIdeas([...initialMockIdeas]); // Create a mutable copy
+    setIdeas([...initialMockIdeas]);
   }, []);
 
   const handleSubmitToInvestors = (ideaId: string) => {
@@ -55,15 +104,21 @@ export default function MyIdeasClient() {
     });
   };
 
-  const handleMakePremier = (ideaId: string) => {
-    // In a real app, this would involve a payment flow.
-    // For prototype, we just simulate success.
+  const openPremierPaymentDialog = (idea: DreamIdea) => {
+    setSelectedIdeaForPremier(idea);
+    setShowPremierPaymentDialog(true);
+  };
+
+  const handleConfirmPremierPayment = () => {
+    if (!selectedIdeaForPremier) return;
+
+    const ideaId = selectedIdeaForPremier.id;
     setIdeas(prevIdeas =>
       prevIdeas.map(idea =>
         idea.id === ideaId ? {
           ...idea,
           isPremier: true,
-          premierUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours from now
+          premierUntil: new Date(Date.now() + 24 * 60 * 60 * 1000), 
           updatedAt: new Date()
         } : idea
       )
@@ -76,14 +131,16 @@ export default function MyIdeasClient() {
     }
     toast({
       title: "Dream Featured!",
-      description: "Your idea will be featured as Premier for 24 hours.",
+      description: `"${selectedIdeaForPremier.title}" will be featured as Premier for 24 hours.`,
     });
+    setShowPremierPaymentDialog(false);
+    setSelectedIdeaForPremier(null);
   };
 
   const activeUserIdeas = ideas.filter(idea => idea.status === 'private' || idea.status === 'submitted' || idea.status === 'reviewing_offers');
 
 
-  if (activeUserIdeas.length === 0 && ideas.length > 0) { // Check if there are ideas, but none are in active states for this list
+  if (activeUserIdeas.length === 0 && ideas.length > 0) {
     return (
       <div className="text-center py-10">
         <CheckCircle className="mx-auto h-12 w-12 text-green-500 mb-4" />
@@ -170,7 +227,7 @@ export default function MyIdeasClient() {
                 )}
                 {canBeMadePremier && !isCurrentlyPremier && (
                   <Button
-                    onClick={() => handleMakePremier(idea.id)}
+                    onClick={() => openPremierPaymentDialog(idea)}
                     variant="outline"
                     className="border-yellow-500 text-yellow-600 hover:bg-yellow-100 hover:text-yellow-700"
                   >
@@ -199,8 +256,7 @@ export default function MyIdeasClient() {
                 onClick={() => {
                     localStorage.setItem('dreamerSubscribed', 'true');
                     setIsSubscribed(true);
-                    // Force re-render or state update to reflect subscription change immediately
-                    setIdeas(prev => [...prev]); // Trigger re-render by creating new array instance
+                    setIdeas(prev => [...prev]); 
                 }}
                 className="bg-accent hover:bg-accent/80 text-accent-foreground"
              >
@@ -209,6 +265,15 @@ export default function MyIdeasClient() {
            </CardFooter>
          </Card>
        )}
+        <MockPremierPaymentDialog 
+            isOpen={showPremierPaymentDialog}
+            onClose={() => {
+                setShowPremierPaymentDialog(false);
+                setSelectedIdeaForPremier(null);
+            }}
+            onConfirm={handleConfirmPremierPayment}
+            ideaTitle={selectedIdeaForPremier?.title}
+        />
     </div>
   );
 }
