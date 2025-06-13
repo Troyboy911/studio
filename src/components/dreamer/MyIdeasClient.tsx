@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { DreamIdea } from '@/types';
@@ -6,32 +7,43 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, Edit3, Send, CheckCircle, Hourglass } from 'lucide-react';
-import { mockUserIdeas as initialMockIdeas } from '@/lib/mockIdeas'; // Using a separate mock file
+import { ArrowRight, Edit3, Send, CheckCircle, Hourglass, Star, Lock } from 'lucide-react';
+import { mockUserIdeas as initialMockIdeas } from '@/lib/mockIdeas';
 import { useToast } from "@/hooks/use-toast";
 
 export default function MyIdeasClient() {
   const [ideas, setIdeas] = useState<DreamIdea[]>([]);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    // Simulate fetching ideas. In a real app, this would be an API call.
-    // We filter to only show 'private' or current user's 'submitted' ideas.
+    const subStatus = localStorage.getItem('dreamerSubscribed') === 'true';
+    setIsSubscribed(subStatus);
+
     const userSpecificIdeas = initialMockIdeas.filter(idea => idea.status === 'private' || idea.status === 'submitted');
     setIdeas(userSpecificIdeas);
   }, []);
 
   const handleSubmitToInvestors = (ideaId: string) => {
+    if (!isSubscribed) {
+      toast({
+        title: "Subscription Required",
+        description: "Please subscribe to submit your ideas to investors.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIdeas(prevIdeas => 
       prevIdeas.map(idea => 
-        idea.id === ideaId ? { ...idea, status: 'submitted' as const } : idea
+        idea.id === ideaId ? { ...idea, status: 'submitted' as const, updatedAt: new Date() } : idea
       )
     );
-    // In a real app, this would also trigger an API call.
-    // For now, also update the global mock for other parts of the app.
+    
     const ideaIndex = initialMockIdeas.findIndex(i => i.id === ideaId);
     if (ideaIndex !== -1) {
       initialMockIdeas[ideaIndex].status = 'submitted';
+      initialMockIdeas[ideaIndex].updatedAt = new Date();
     }
 
     toast({
@@ -85,13 +97,46 @@ export default function MyIdeasClient() {
               </Link>
             </Button>
             {idea.status === 'private' && (
-              <Button onClick={() => handleSubmitToInvestors(idea.id)} variant="default" className="bg-accent hover:bg-accent/90">
-                Submit to Investors <Send className="ml-2 h-4 w-4" />
+              <Button 
+                onClick={() => handleSubmitToInvestors(idea.id)} 
+                variant="default" 
+                className="bg-accent hover:bg-accent/90"
+                disabled={!isSubscribed}
+                title={!isSubscribed ? "Subscription required to submit" : "Submit to Investors"}
+              >
+                {isSubscribed ? <Send className="mr-2 h-4 w-4" /> : <Lock className="mr-2 h-4 w-4" />}
+                Submit to Investors
               </Button>
             )}
           </CardFooter>
         </Card>
       ))}
+       {!isSubscribed && (
+         <Card className="mt-6 border-dashed border-accent bg-accent/5">
+           <CardHeader>
+             <CardTitle className="flex items-center text-accent">
+               <Star className="mr-2 h-6 w-6"/> Unlock Investor Submissions
+             </CardTitle>
+           </CardHeader>
+           <CardContent>
+             <p className="text-accent/90">
+               Want to submit your ideas to our investor network? An active subscription is required.
+             </p>
+           </CardContent>
+           <CardFooter>
+             <Button 
+                onClick={() => {
+                    localStorage.setItem('dreamerSubscribed', 'true');
+                    setIsSubscribed(true);
+                    window.location.reload();
+                }} 
+                className="bg-accent hover:bg-accent/80 text-accent-foreground"
+             >
+               Mock Subscribe Now
+             </Button>
+           </CardFooter>
+         </Card>
+       )}
     </div>
   );
 }
