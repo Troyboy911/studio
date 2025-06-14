@@ -5,13 +5,53 @@
 
 @layer base {
   :root {
+    /* Light Theme (Default) */
+    --background: 0 0% 98%; /* Almost White */
+    --foreground: 220 15% 20%; /* Dark Blue/Gray Text */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 220 15% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 25%;
+    --primary: 190 70% 45%; /* Adjusted Cyan for Light Mode */
+    --primary-foreground: 0 0% 100%; /* White text on primary */
+    --secondary: 220 30% 90%; /* Light Grayish Blue */
+    --secondary-foreground: 220 15% 30%;
+    --muted: 220 30% 94%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 180 65% 40%; /* Teal/Cyan for Light Mode Accent */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%; /* Clear Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 85%; /* Light Gray Border */
+    --input: 220 20% 90%;
+    --ring: 190 70% 50%;
+    --chart-1: 190 70% 50%;
+    --chart-2: 170 60% 45%;
+    --chart-3: 200 65% 40%;
+    --chart-4: 30 70% 60%;
+    --chart-5: 0 80% 65%;
+    --radius: 0.5rem;
+
+    /* Sidebar variables for light theme - can be adjusted if sidebar needs different light styling */
+    --sidebar-background: 220 30% 96%; /* Lighter sidebar background */
+    --sidebar-foreground: 220 15% 25%; /* Darker text for light sidebar */
+    --sidebar-primary: 190 70% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 30% 88%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 220 20% 80%;
+    --sidebar-ring: 190 70% 45%;
+  }
+
+  :root.dark {
+    /* Dark Theme */
     --background: 220 60% 15%; /* Dark Blue */
     --foreground: 0 0% 98%; /* Almost White */
     --card: 220 50% 20%; /* Slightly lighter Dark Blue for cards */
     --card-foreground: 0 0% 95%; /* Light text for cards */
     --popover: 220 50% 18%;
     --popover-foreground: 0 0% 95%;
-    --primary: 190 80% 60%; /* Cyan/Bright Blue for primary actions/links if needed */
+    --primary: 190 80% 60%; /* Cyan/Bright Blue */
     --primary-foreground: 220 50% 10%; /* Dark text on primary */
     --secondary: 220 50% 30%; /* Muted dark blue */
     --secondary-foreground: 0 0% 90%;
@@ -19,7 +59,7 @@
     --muted-foreground: 0 0% 70%; /* Softer light text */
     --accent: 190 90% 50%; /* Bright Cyan for "Get Started" button */
     --accent-foreground: 220 50% 10%; /* Dark text for accent button */
-    --destructive: 12 70% 55%; /* Changed from 0 70% 50% to a warmer red-orange */
+    --destructive: 12 70% 55%; /* Warmer red-orange */
     --destructive-foreground: 0 0% 98%;
     --border: 220 50% 30%; /* Muted dark blue for borders */
     --input: 220 50% 25%;
@@ -29,9 +69,8 @@
     --chart-3: 210 37% 34%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem;
 
-    /* Sidebar variables can remain or be adjusted if sidebar styling needs to match new theme */
+    /* Sidebar variables for dark theme */
     --sidebar-background: 220 55% 12%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 190 80% 55%;
@@ -41,10 +80,6 @@
     --sidebar-border: 220 50% 25%;
     --sidebar-ring: 190 80% 50%;
   }
-
-  /* Dark theme is now the default, so .dark class is not strictly necessary for these root vars */
-  /* If you intend to keep a light theme toggle, you'd define different values under .light or a non-.dark root */
-
 }
 
 @layer base {
@@ -54,6 +89,9 @@
   body {
     @apply bg-background text-foreground text-base font-medium;
     font-family: 'Inter', sans-serif;
+    /* Background image will only apply if .dark class is on html/body */
+  }
+  :root.dark body {
     background-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 24 24' fill='hsla(0, 0%25, 75%25, 0.03)' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.449l-7.416 4.964 1.48-8.279L0 9.306l8.332-1.151L12 .587z'/%3E%3C/svg%3E");
     background-size: 60px 60px; /* Adjust the size/density of stars */
     background-repeat: repeat;
