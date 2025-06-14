@@ -1,0 +1,65 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 60% 15%; /* Dark Blue */
+    --foreground: 0 0% 98%; /* Almost White */
+    --card: 220 50% 20%; /* Slightly lighter Dark Blue for cards */
+    --card-foreground: 0 0% 95%; /* Light text for cards */
+    --popover: 220 50% 18%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 190 80% 60%; /* Cyan/Bright Blue for primary actions/links if needed */
+    --primary-foreground: 220 50% 10%; /* Dark text on primary */
+    --secondary: 220 50% 30%; /* Muted dark blue */
+    --secondary-foreground: 0 0% 90%;
+    --muted: 220 40% 25%;
+    --muted-foreground: 0 0% 70%; /* Softer light text */
+    --accent: 190 90% 50%; /* Bright Cyan for "Get Started" button */
+    --accent-foreground: 220 50% 10%; /* Dark text for accent button */
+    --destructive: 12 70% 55%; /* Changed from 0 70% 50% to a warmer red-orange */
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 50% 30%; /* Muted dark blue for borders */
+    --input: 220 50% 25%;
+    --ring: 190 80% 55%; /* Cyan/Bright Blue for focus rings */
+    --chart-1: 190 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 210 37% 34%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+
+    /* Sidebar variables can remain or be adjusted if sidebar styling needs to match new theme */
+    --sidebar-background: 220 55% 12%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 190 80% 55%;
+    --sidebar-primary-foreground: 220 50% 8%;
+    --sidebar-accent: 220 50% 20%;
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 220 50% 25%;
+    --sidebar-ring: 190 80% 50%;
+  }
+
+  /* Dark theme is now the default, so .dark class is not strictly necessary for these root vars */
+  /* If you intend to keep a light theme toggle, you'd define different values under .light or a non-.dark root */
+
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground text-base font-medium;
+    font-family: 'Inter', sans-serif;
+    background-image: url("data:image/svg+xml,%3Csvg width='15' height='15' viewBox='0 0 24 24' fill='hsla(0, 0%25, 75%25, 0.03)' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 19.449l-7.416 4.964 1.48-8.279L0 9.306l8.332-1.151L12 .587z'/%3E%3C/svg%3E");
+    background-size: 60px 60px; /* Adjust the size/density of stars */
+    background-repeat: repeat;
+    background-attachment: fixed; /* Stars stay in place when scrolling */
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline font-semibold; /* Headlines use Inter with a bolder weight */
+  }
+}
