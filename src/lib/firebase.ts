@@ -1,22 +1,21 @@
-
+// Import the functions you need from the SDKs you need
 import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-// import { getStorage } from 'firebase/storage';
-// import { getFunctions } from 'firebase/functions';
-// import { getAnalytics } from "firebase/analytics";
+import { getAnalytics, type Analytics } from 'firebase/analytics';
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-
-// IMPORTANT: Replace these with your actual Firebase project configuration
-// You can find this in your Firebase project settings -> General -> Your apps -> SDK setup and configuration
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID" // Optional: For Firebase Analytics
+  apiKey: "AIzaSyBjOJJ9uLc8RMlrwZywj1SyDjbwdTNn0IQ", // IMPORTANT: Keep your API keys secure and consider using environment variables.
+  authDomain: "idream-kstw2.firebaseapp.com",
+  projectId: "idream-kstw2",
+  storageBucket: "idream-kstw2.appspot.com", // Corrected from .firebasestorage.app
+  messagingSenderId: "114098999206",
+  appId: "1:114098999206:web:15222a3c9b2daaf8ebc967",
+  measurementId: "G-H0MGDV582F"
 };
 
 // Initialize Firebase
@@ -29,13 +28,10 @@ if (!getApps().length) {
 
 const auth = getAuth(app);
 const db = getFirestore(app);
-// const storage = getStorage(app);
-// const functions = getFunctions(app);
-// let analytics;
-// if (typeof window !== 'undefined') {
-//   analytics = getAnalytics(app);
-// }
 
+let analytics: Analytics | undefined;
+if (typeof window !== 'undefined') {
+  analytics = getAnalytics(app);
+}
 
-export { app, auth, db };
-// export { storage, functions, analytics };
+export { app, auth, db, analytics };
