@@ -2,22 +2,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { UserCircle, LayoutDashboard, LogIn, Settings } from 'lucide-react';
+import { UserCircle, LayoutDashboard, LogIn, Settings, Star } from 'lucide-react'; // Added Star
 
 export default function Header() {
   return (
     <header className="bg-background/80 backdrop-blur-md shadow-md sticky top-0 z-50 border-b border-border">
       <div className="container mx-auto px-4 py-3 flex items-center">
-        <Link href="/" className="mr-6 flex items-center">
-          <Image
-            src="https://placehold.co/120x40.png"
-            alt="IDream Logo"
-            width={120}
-            height={40}
-            priority
-            data-ai-hint="abstract logo"
-            className="hover:opacity-80 transition-opacity"
-          />
+        <Link href="/" className="mr-6 flex items-center text-3xl font-headline text-foreground hover:text-primary transition-colors">
+          I<Star className="h-5 w-5 mx-0.5 fill-current text-yellow-400" />Dream {/* Changed IDream to I<Star/>Dream */}
         </Link>
         
         <nav className="flex items-center space-x-1 sm:space-x-2">
