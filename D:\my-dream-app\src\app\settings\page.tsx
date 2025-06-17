@@ -81,7 +81,9 @@ export default function SettingsPage() {
   };
 
   const handleManageSubscription = () => {
-    router.push('/dreamer'); // Navigate to dreamer dashboard where subscription is handled
+    // Navigate to a page where subscription can be managed
+    // For this prototype, we'll direct to the dreamer dashboard which handles subscription UI
+    router.push('/dreamer'); 
   };
 
   if (!mounted) {

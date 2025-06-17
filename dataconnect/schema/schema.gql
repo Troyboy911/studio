@@ -1,0 +1,57 @@
+type User @table {
+  displayName: String!
+  userType: String!
+  createdAt: Timestamp!
+  email: String
+  photoUrl: String
+  bio: String
+  location: String
+  verifiedFinancialStatus: Boolean
+}
+
+type Project @table {
+  title: String!
+  description: String!
+  industry: String!
+  stage: String!
+  fundingGoal: Float!
+  createdAt: Timestamp!
+  dreamer: User!
+  images: [String]
+  documents: [String]
+  aiAnalysisSummary: String
+  riskAssessment: String
+}
+
+type UserSubscription @table {
+  user: User!
+  startDate: Date!
+  monthlyFee: Float!
+  paymentMethod: String!
+  endDate: Date
+  autoRenew: Boolean
+}
+
+type Investment @table {
+  investor: User!
+  project: Project!
+  amount: Float!
+  investmentDate: Timestamp!
+  notes: String
+}
+
+type Milestone @table {
+  project: Project!
+  description: String!
+  dueDate: Date!
+  completedDate: Date
+  notes: String
+}
+
+type LegalDocument @table {
+  project: Project
+  investment: Investment
+  documentType: String!
+  uploadDate: Timestamp!
+  documentUrl: String
+}
