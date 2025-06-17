@@ -1,5 +1,10 @@
 {
-  "cloud_run_deploy": {},
+  "firebase_hosting": {},
+  "cloud_run_deploy": {
+    "region": "northamerica-south1",
+    "sourceFlag": "--source .",
+    "allowUnauthenticatedInvocationsFlag": "--allow-unauthenticated"
+  },
   "gemini_api": {},
   "secrets_manager": {}
 }
