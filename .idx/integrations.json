@@ -5,6 +5,5 @@
     "sourceFlag": "--source .",
     "allowUnauthenticatedInvocationsFlag": "--allow-unauthenticated"
   },
-  "gemini_api": {},
-  "secrets_manager": {}
+  "gemini_api": {}
 }
