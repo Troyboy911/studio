@@ -18,7 +18,7 @@
     --secondary-foreground: 220 15% 30%;
     --muted: 220 30% 94%;
     --muted-foreground: 220 10% 45%;
-    --accent: 180 65% 40%; /* Teal/Cyan for Light Mode Accent */
+    --accent: 180 65% 30%; /* Teal/Cyan for Light Mode Accent (darkened for contrast) */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84% 60%; /* Clear Red */
     --destructive-foreground: 0 0% 100%;
@@ -57,7 +57,7 @@
     --secondary-foreground: 210 40% 80%;
     --muted: 215 28% 18%; /* Darker Muted Blue-Gray */
     --muted-foreground: 210 40% 60%;
-    --accent: 158 79% 40%; /* Vibrant Green/Teal */
+    --accent: 158 79% 30%; /* Vibrant Green/Teal (darkened for contrast) */
     --accent-foreground: 355 100% 97%; /* White text on Accent Green/Teal */
     --destructive: 0 72% 51%; /* Adjusted Red for Dark Theme */
     --destructive-foreground: 0 0% 98%;
