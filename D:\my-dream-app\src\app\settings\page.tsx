@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from 'react';
@@ -37,13 +36,15 @@ export default function SettingsPage() {
     // Check login status
     const dreamerAuth = localStorage.getItem('dreamerAuthenticated') === 'true';
     const investorAuth = localStorage.getItem('investorAuthenticated') === 'true';
+    const adminAuth = localStorage.getItem('adminAuthenticated') === 'true';
 
-    if (dreamerAuth && investorAuth) {
-      setLoggedInStatus("Logged in (Dreamer & Investor roles active)");
-    } else if (dreamerAuth) {
-      setLoggedInStatus("Logged in as Dreamer");
-    } else if (investorAuth) {
-      setLoggedInStatus("Logged in as Investor");
+    let roles = [];
+    if (dreamerAuth) roles.push('Dreamer');
+    if (investorAuth) roles.push('Investor');
+    if (adminAuth) roles.push('Admin');
+    
+    if (roles.length > 0) {
+      setLoggedInStatus(`Logged in as: ${roles.join(' & ')}`);
     } else {
       setLoggedInStatus("Not currently logged in.");
     }
@@ -72,9 +73,10 @@ export default function SettingsPage() {
     localStorage.removeItem('dreamerSubscribed');
     localStorage.removeItem('investorAuthenticated');
     localStorage.removeItem('investorApproved');
+    localStorage.removeItem('adminAuthenticated'); // Clear admin auth too
     toast({
       title: "Logged Out",
-      description: "You have been successfully logged out.",
+      description: "You have been successfully logged out from all roles.",
     });
     setLoggedInStatus("Not currently logged in."); // Update UI immediately
     router.push('/'); // Redirect to homepage
