@@ -8,25 +8,43 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldCheck, LogIn } from 'lucide-react';
-
-const ADMIN_EMAIL = 'admin@idream.app';
-const ADMIN_PASSWORD = 'supersecret';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 export default function AdminAuthForm() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      localStorage.setItem('adminAuthenticated', 'true');
-      router.push('/admin'); 
-    } else {
-      setError('Invalid admin credentials.');
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // The AdminLayout will handle verifying if the user is an admin and redirecting.
+      // We just push to the admin page optimistically.
+      router.push('/admin');
+    } catch (err: any) {
+      // Handle Firebase Auth errors
+      switch (err.code) {
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+          setError('Invalid email or password.');
+          break;
+        case 'auth/invalid-email':
+          setError('Please enter a valid email address.');
+          break;
+        default:
+          setError('An unexpected error occurred. Please try again.');
+          break;
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,6 +70,7 @@ export default function AdminAuthForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           <div className="space-y-2">
@@ -63,6 +82,7 @@ export default function AdminAuthForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              disabled={isLoading}
             />
           </div>
           {error && (
@@ -73,8 +93,8 @@ export default function AdminAuthForm() {
           )}
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-            Sign In <LogIn className="ml-2 h-4 w-4" />
+          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
+            {isLoading ? "Signing In..." : "Sign In"} <LogIn className="ml-2 h-4 w-4" />
           </Button>
         </CardFooter>
       </form>
