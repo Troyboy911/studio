@@ -9,6 +9,8 @@ import { Button } from '@/components/ui/button';
 import { Moon, Sun, Bell, UserCircle, LogOut, Palette, Globe, CreditCard } from 'lucide-react'; // Added CreditCard
 import { Separator } from '@/components/ui/separator';
 import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 // Since this is a client component, metadata is better handled by a parent layout or not at all if dynamic.
 
@@ -18,6 +20,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [loggedInStatus, setLoggedInStatus] = useState<string>("Not currently logged in.");
+  const [isFirebaseUser, setIsFirebaseUser] = useState(false);
 
   // Effect to handle initial theme load and ensure client-side execution
   useEffect(() => {
@@ -36,18 +39,22 @@ export default function SettingsPage() {
     // Check login status
     const dreamerAuth = localStorage.getItem('dreamerAuthenticated') === 'true';
     const investorAuth = localStorage.getItem('investorAuthenticated') === 'true';
-    const adminAuth = localStorage.getItem('adminAuthenticated') === 'true';
 
-    let roles = [];
-    if (dreamerAuth) roles.push('Dreamer');
-    if (investorAuth) roles.push('Investor');
-    if (adminAuth) roles.push('Admin');
-    
-    if (roles.length > 0) {
-      setLoggedInStatus(`Logged in as: ${roles.join(' & ')}`);
-    } else {
-      setLoggedInStatus("Not currently logged in.");
-    }
+    const unsubscribe = auth.onAuthStateChanged(user => {
+        setIsFirebaseUser(!!user);
+        let roles = [];
+        if (dreamerAuth) roles.push('Dreamer (Mock)');
+        if (investorAuth) roles.push('Investor (Mock)');
+        if (user) roles.push(`User (${user.email})`);
+        
+        if (roles.length > 0) {
+            setLoggedInStatus(`Logged in as: ${roles.join(' & ')}`);
+        } else {
+            setLoggedInStatus("Not currently logged in.");
+        }
+    });
+
+    return () => unsubscribe();
 
   }, []);
 
@@ -68,17 +75,26 @@ export default function SettingsPage() {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Clear mock auth
     localStorage.removeItem('dreamerAuthenticated');
     localStorage.removeItem('dreamerSubscribed');
     localStorage.removeItem('investorAuthenticated');
     localStorage.removeItem('investorApproved');
-    localStorage.removeItem('adminAuthenticated'); // Clear admin auth too
+    
+    // Sign out from Firebase
+    try {
+        await signOut(auth);
+    } catch (error) {
+        console.error("Firebase sign out error:", error);
+    }
+
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out from all roles.",
     });
     setLoggedInStatus("Not currently logged in."); // Update UI immediately
+    setIsFirebaseUser(false);
     router.push('/'); // Redirect to homepage
   };
 
@@ -150,7 +166,7 @@ export default function SettingsPage() {
           <Button variant="outline" className="w-full flex items-center" onClick={handleManageSubscription}>
             <CreditCard className="mr-2 h-4 w-4" /> Manage Subscription (Dreamer)
           </Button>
-          <Button variant="destructive" className="w-full flex items-center" onClick={handleLogout}>
+          <Button variant="destructive" className="w-full flex items-center" onClick={handleLogout} disabled={!isFirebaseUser && loggedInStatus.includes('Not')}>
             <LogOut className="mr-2 h-4 w-4" /> Logout
           </Button>
         </CardContent>

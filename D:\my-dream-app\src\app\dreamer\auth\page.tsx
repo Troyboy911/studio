@@ -1,7 +1,6 @@
 'use client';
 
 import DreamerAuthForm from '@/components/dreamer/DreamerAuthForm';
-import type { Metadata } from 'next';
 
 // Note: For client components, metadata should ideally be handled by a parent layout.
 // Commenting out for client component best practices.

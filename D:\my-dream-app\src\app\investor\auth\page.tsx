@@ -1,7 +1,6 @@
 'use client';
 
 import InvestorAuthForm from '@/components/investor/InvestorAuthForm';
-import type { Metadata } from 'next';
 
 // Note: For client components, metadata should ideally be handled by a parent layout.
 // If you need dynamic metadata here, you might need to reconsider component structure
