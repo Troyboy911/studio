@@ -1,15 +1,14 @@
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { UserCircle, LayoutDashboard, LogIn, Settings, Star } from 'lucide-react'; // Added Star
+import { UserCircle, LayoutDashboard, LogIn, Settings, Star } from 'lucide-react';
 
 export default function Header() {
   return (
     <header className="bg-background/80 backdrop-blur-md shadow-md sticky top-0 z-50 border-b border-border">
       <div className="container mx-auto px-4 py-3 flex items-center">
         <Link href="/" className="mr-6 flex items-center text-3xl font-headline text-foreground hover:text-primary transition-colors">
-          I<Star className="h-5 w-5 mx-0.5 fill-current text-yellow-400" />Dream {/* Changed IDream to I<Star/>Dream */}
+          I<Star className="h-5 w-5 mx-0.5 fill-current text-yellow-400" />Dream
         </Link>
         
         <nav className="flex items-center space-x-1 sm:space-x-2">
