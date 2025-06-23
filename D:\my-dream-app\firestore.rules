@@ -1,11 +1,6 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    // WARNING: These rules are insecure and are NOT recommended for production.
-    // They allow any authenticated user to read and write to the entire database.
-    // You should secure your database before deploying to a production environment.
-    // For more information, see: https://firebase.google.com/docs/firestore/security/get-started
     match /{document=**} {
       allow read, write: if true;
     }
