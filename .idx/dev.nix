@@ -1,3 +1,4 @@
+pkgs.nodePackages.pnpm
 { pkgs, ... }: {
   # Use a stable Nixpkgs version
   channel = "stable-24.05";
